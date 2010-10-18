@@ -84,6 +84,7 @@ def decodeSHandshake(packet):
 
 def decodeSaddtoinv(packet):
 	idbyte,itemtype,amount,life = struct.unpack("!BHBH",packet[:6])
+	print "length is %i" % len(packet)
 	packet = {
 		'type':idbyte,
 		'itemtype':itemtype,
