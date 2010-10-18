@@ -3,7 +3,7 @@ import thread
 import socket
 import mcpackets
 import struct
-
+import nbt
 #
 # server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
 #
@@ -38,23 +38,26 @@ def c2s(clientsocket,serversocket):
 				pass
 
 def s2c(clientsocket,serversocket, locfind):
+	sockfile = clientsocket.createfile('rw', 4096)
 	while True:
-		msg = serversocket.recv(32768)
-		clientsocket.send(msg)
-		if (dump_packets == 1):
-			if (dumpfilter == 0):
-				print "server -> client: %s" % mcpackets.packet_name(ord(msg[0]))
-				print mcpackets.server_decode(msg)
-				print ""
-			else:
-				packet = mcpackets.decodeGeneric(msg)
-				if packet['type'] in [mcpackets.packet_addtoinv]:
-					print mcpackets.server_decode(msg)
-		if (locfind == 1):
-			a = mcpackets.decodeGeneric(msg)
-			if (a['type'] == mcpackets.packet_playerpos):
-				print "location found"
-				locfind = 0
+		packetid = nbt.TAG_Byte()
+		print packetid.value
+		#msg = serversocket.recv(32768)
+		#clientsocket.send(msg)
+		#if (dump_packets == 1):
+		#	if (dumpfilter == 0):
+		#		print "server -> client: %s" % mcpackets.packet_name(ord(msg[0]))
+		#		print mcpackets.server_decode(msg)
+		#		print ""
+		#	else:
+		#		packet = mcpackets.decodeGeneric(msg)
+		#		if packet['type'] in [mcpackets.packet_addtoinv]:
+		#			print mcpackets.server_decode(msg)
+		#if (locfind == 1):
+		#	a = mcpackets.decodeGeneric(msg)
+		#	if (a['type'] == mcpackets.packet_playerpos):
+		#		print "location found"
+		#		locfind = 0
 
 
 thread.start_new_thread(c2s,(conn,serversocket))
