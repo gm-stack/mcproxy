@@ -31,13 +31,13 @@ locfind = 0
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
-		self.inbuff = insocket.makefile('r', 4096*32)
+		self.inbuff = insocket.makefile('r', 4096)
 		self.outsock = outsocket
 		
 	def read(self, nbytes=0):
 		bytes = ""
 		while nbytes > 4096:
-			bytes += self.inbuff.read(bytes)
+			bytes += self.inbuff.read(nbytes)
 			nbytes -= 4096
 		if nbytes:
 			bytes += self.inbuff.read(nbytes)
@@ -65,7 +65,7 @@ def s2c(clientsocket,serversocket, locfind):
 		elif packetid == mcpackets.packet_keepalive:
 			print "keepalive" 
 		else:
-			print "unknown packet 0x%2X" % packetID
+			print "unknown packet 0x%2X" % packetid
 			
 		#msg = serversocket.recv(32768)
 		#clientsocket.send(msg)
