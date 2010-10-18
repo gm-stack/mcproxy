@@ -3,7 +3,9 @@ import thread
 import socket
 import mcpackets
 import struct
+import time
 import nbt
+#from StringIO import StringIO
 #
 # server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
 #
@@ -27,6 +29,21 @@ dump_packets = 0
 dumpfilter = 0
 locfind = 0
 
+class FowardingBuffer():
+	def __init__(self, insocket, outsocket, *args, **kwargs):
+		self.inbuff = insocket.makefile('r', 4096*32)
+		self.outsock = outsocket
+		
+	def read(self, nbytes=0):
+		bytes = ""
+		while nbytes > 4096:
+			bytes += self.inbuff.read(bytes)
+			nbytes -= 4096
+		if nbytes:
+			bytes += self.inbuff.read(nbytes)
+		self.outsock.send(bytes)
+		return bytes
+
 def c2s(clientsocket,serversocket):
 	while True:
 		msg = clientsocket.recv(32768)
@@ -38,10 +55,18 @@ def c2s(clientsocket,serversocket):
 				pass
 
 def s2c(clientsocket,serversocket, locfind):
-	sockfile = clientsocket.createfile('rw', 4096)
+	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
-		packetid = nbt.TAG_Byte()
-		print packetid.value
+		packetid = nbt.TAG_Byte(buffer=buff).value
+		if packetid in mcpackets.packet_names.keys() and mcpackets.server_decoders[packetid]:
+			print "packet : 0x%2X" % packetid
+			packet = mcpackets.server_decoders[packetid](buffer=buff)
+			print mcpackets.packet_names[packetid], ":", packet
+		elif packetid == mcpackets.packet_keepalive:
+			print "keepalive" 
+		else:
+			print "unknown packet 0x%2X" % packetID
+			
 		#msg = serversocket.recv(32768)
 		#clientsocket.send(msg)
 		#if (dump_packets == 1):
