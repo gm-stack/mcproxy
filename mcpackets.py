@@ -256,7 +256,7 @@ def decodePreChunk(buffer):
 	return {
 		'x':		nbt.TAG_Int(buffer=buffer).value,
 		'z':		nbt.TAG_Int(buffer=buffer).value,
-		'rotation':	nbt.TAG_Byte(buffer=buffer).value,
+		'mode':		nbt.TAG_Byte(buffer=buffer).value >=1,
 		}
 
 def decodeMapChunk(buffer):

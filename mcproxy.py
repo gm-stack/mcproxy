@@ -5,6 +5,8 @@ import mcpackets
 import struct
 import time
 import nbt
+import traceback
+from binascii import hexlify
 #from StringIO import StringIO
 #
 # server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
@@ -33,16 +35,21 @@ class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
 		self.inbuff = insocket.makefile('r', 4096)
 		self.outsock = outsocket
+		self.lastpack = ""
 		
-	def read(self, nbytes=0):
-		bytes = ""
-		while nbytes > 4096:
-			bytes += self.inbuff.read(nbytes)
-			nbytes -= 4096
-		if nbytes:
-			bytes += self.inbuff.read(nbytes)
+	def read(self, bytes=0):
+		#stack = traceback.extract_stack()
+		bytes = self.inbuff.read(bytes)
+		self.lastpack += bytes
 		self.outsock.send(bytes)
 		return bytes
+	
+	def packet_end(self):
+		rpack = self.lastpack
+		self.lastpack = ""
+		rpack = " ".join([hexlify(byte) for byte in rpack])
+		return rpack
+
 
 def c2s(clientsocket,serversocket):
 	while True:
@@ -57,16 +64,18 @@ def c2s(clientsocket,serversocket):
 def s2c(clientsocket,serversocket, locfind):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
-		packetid = nbt.TAG_Byte(buffer=buff).value
+		packetid = struct.unpack("!B", buff.read(1))[0]
 		if packetid in mcpackets.packet_names.keys() and mcpackets.server_decoders[packetid]:
-			print "packet : 0x%2X" % packetid
+			#print "packet : 0x%2X" % packetid
 			packet = mcpackets.server_decoders[packetid](buffer=buff)
 			print mcpackets.packet_names[packetid], ":", packet
 		elif packetid == mcpackets.packet_keepalive:
 			print "keepalive" 
 		else:
 			print "unknown packet 0x%2X" % packetid
-			
+		
+		print buff.packet_end()
+		
 		#msg = serversocket.recv(32768)
 		#clientsocket.send(msg)
 		#if (dump_packets == 1):
