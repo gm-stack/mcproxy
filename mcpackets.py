@@ -33,6 +33,7 @@ packet_prechunk = 0x32
 packet_mapchunk = 0x33
 packet_multiblockchange = 0x34
 packet_blockchange = 0x35
+packet_complexent = 0x3B
 packet_disconnect = 0xFF
 
 def packet_name(byte):
@@ -73,6 +74,7 @@ packet_names = {
 	packet_mapchunk:'packet_mapchunk',
 	packet_multiblockchange:'packet_multiblockchange',
 	packet_blockchange:'packet_blockchange',
+	packet_complexent:'packet_complexent',
 	packet_disconnect:'packet_disconnect',
 }
 
@@ -295,7 +297,6 @@ def decodeMapChunk(buffer):
 		'size_x':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_y':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_z':	nbt.TAG_Byte(buffer=buffer).value,
-		'size':		nbt.TAG_Int(buffer=buffer).value,
 		'chunk':	nbt.TAG_Byte_Array(buffer=buffer).value,
 		}
 
@@ -323,6 +324,14 @@ def decodeBlockChange(buffer):
 		'z':	nbt.TAG_Int(buffer=buffer).value,
 		'type':	nbt.TAG_Byte(buffer=buffer).value,
 		'meta': nbt.TAG_Byte(buffer=buffer).value,
+		}
+
+def decodeComplexEntity(buffer):
+	return {
+		'x':		nbt.TAG_Int(buffer=buffer).value,
+		'y':		nbt.TAG_Short(buffer=buffer).value,
+		'z':		nbt.TAG_Int(buffer=buffer).value,
+		'payload':	nbt.TAG_Byte_Array(buffer=buffer).value,
 		}
 	
 def decodeDisconnect(buffer):
@@ -360,6 +369,7 @@ server_decoders = {
 	packet_mapchunk:decodeMapChunk,
 	packet_multiblockchange:decodeMultiBlockChange,
 	packet_blockchange:decodeBlockChange,
+	packet_complexent:decodeComplexEntity,
 	packet_disconnect:decodeDisconnect,
 }
 

@@ -13,6 +13,7 @@ TAG_BYTE_ARRAY = 7
 TAG_STRING = 8
 TAG_LIST = 9
 TAG_COMPOUND = 10
+TAG_BYTEU = 11
 
 class TAG(object):
 	"""Each Tag needs to take a file-like object for reading and writing.
@@ -63,6 +64,11 @@ class TAG_Byte(_TAG_Numeric):
 	id = TAG_BYTE
 	def __init__(self, value=None, name=None, buffer=None):
 		super(TAG_Byte, self).__init__(">b", 1, buffer, value, name)
+
+class TAG_ByteU(_TAG_Numeric):
+	id = TAG_BYTE
+	def __init__(self, value=None, name=None, buffer=None):
+		super(TAG_ByteU, self).__init__(">B", 1, buffer, value, name)
 
 class TAG_Short(_TAG_Numeric):
 	id = TAG_SHORT
@@ -238,7 +244,7 @@ class TAG_Compound(TAG):
 		return '\n'.join(output)
 		
 
-TAGLIST = {TAG_BYTE:TAG_Byte, TAG_SHORT:TAG_Short, TAG_INT:TAG_Int, TAG_LONG:TAG_Long, TAG_FLOAT:TAG_Float, TAG_DOUBLE:TAG_Double, TAG_BYTE_ARRAY:TAG_Byte_Array, TAG_STRING:TAG_String, TAG_LIST:TAG_List, TAG_COMPOUND:TAG_Compound}		
+TAGLIST = {TAG_BYTE:TAG_Byte, TAG_SHORT:TAG_Short, TAG_INT:TAG_Int, TAG_LONG:TAG_Long, TAG_FLOAT:TAG_Float, TAG_DOUBLE:TAG_Double, TAG_BYTE_ARRAY:TAG_Byte_Array, TAG_STRING:TAG_String, TAG_LIST:TAG_List, TAG_COMPOUND:TAG_Compound, TAG_BYTEU:TAG_ByteU}		
 
 class NBTFile(TAG_Compound):
 	"""Represents an NBT file object"""
