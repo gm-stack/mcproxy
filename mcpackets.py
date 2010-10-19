@@ -297,7 +297,7 @@ def decodeMapChunk(buffer):
 		'size_x':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_y':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_z':	nbt.TAG_Byte(buffer=buffer).value,
-		'chunk':	nbt.TAG_Byte_Array(buffer=buffer).value, # size is an int!
+		'chunk':	nbt.TAG_Byte_Array(buffer=buffer, lentype=nbt.TAG_Int).value, # size is an int!
 		}
 
 def decodeMultiBlockChange(buffer):

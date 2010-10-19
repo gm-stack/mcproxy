@@ -97,15 +97,15 @@ class TAG_Double(_TAG_Numeric):
 
 class TAG_Byte_Array(TAG):
 	id = TAG_BYTE_ARRAY
-	def __init__(self, buffer=None):
+	def __init__(self, buffer=None, lentype=TAG_Int):
 		super(TAG_Byte_Array, self).__init__()
 		self.tags = []
 		if buffer:
-			self._parse_buffer(buffer)
+			self._parse_buffer(buffer, lentype)
 	
 	#Parsers and Generators	
-	def _parse_buffer(self, buffer, offset=None):
-		self.length = TAG_Int(buffer=buffer)
+	def _parse_buffer(self, buffer, lentype, offset=None):
+		self.length = lentype(buffer=buffer)
 		self.value = buffer.read(self.length.value)
 	
 	def _render_buffer(self, buffer, offset=None):
