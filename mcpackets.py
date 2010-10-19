@@ -8,6 +8,7 @@ packet_handshake = 0x02
 packet_chat = 0x03
 packet_time = 0x04
 packet_inventory = 0x05
+packet_spawnposition = 0x06
 packet_flying = 0x0A
 packet_playerpos = 0x0B
 packet_playerlook = 0x0C
@@ -47,6 +48,7 @@ packet_names = {
 	packet_chat:'packet_chat',
 	packet_time:'packet_time',
 	packet_inventory:'packet_inventory',
+	packet_spawnposition:'packet_spawnposition',
 	packet_flying:'packet_flying',
 	packet_playerpos:'packet_playerpos',
 	packet_playerlook:'packet_playerlook',
@@ -113,6 +115,13 @@ def decodeInventory(buffer):
 			packet['items'][num] = {'itemid': itemid, 'count': count, 'health': health}
 	
 	return packet
+
+def decodeSpawnPosition(buffer):
+	return {
+		'x': nbt.TAG_Int(buffer=buffer).value,
+		'y': nbt.TAG_Int(buffer=buffer).value,
+		'z': nbt.TAG_Int(buffer=buffer).value
+		}
 
 def decodeFlying(buffer):
 	return { 'flying': nbt.TAG_Byte(buffer=buffer).value>=1 , }
@@ -326,6 +335,7 @@ server_decoders = {
 	packet_chat:decodeChat,
 	packet_time:decodeTime,
 	packet_inventory:decodeInventory,
+	packet_spawnposition:decodeSpawnPosition,
 	packet_flying:decodeFlying,
 	packet_playerpos:decodePlayerPosition,
 	packet_playerlook:decodePlayerLook,
