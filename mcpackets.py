@@ -1,11 +1,13 @@
 import struct
 import nbt
 
+# thanks to http://www.wiki.vg/minecraft/alpha/protocol
 packet_keepalive = 0x00
 packet_login = 0x01
 packet_handshake = 0x02
 packet_chat = 0x03
 packet_time = 0x04
+packet_inventory = 0x05
 packet_flying = 0x0A
 packet_playerpos = 0x0B
 packet_playerlook = 0x0C
@@ -44,6 +46,7 @@ packet_names = {
 	packet_handshake:'packet_handshake',
 	packet_chat:'packet_chat',
 	packet_time:'packet_time',
+	packet_inventory:'packet_inventory',
 	packet_flying:'packet_flying',
 	packet_playerpos:'packet_playerpos',
 	packet_playerlook:'packet_playerlook',
@@ -68,7 +71,7 @@ packet_names = {
 	packet_mapchunk:'packet_mapchunk',
 	packet_multiblockchange:'packet_multiblockchange',
 	packet_blockchange:'packet_blockchange',
-	packet_disconnect:'packet_disconnect'
+	packet_disconnect:'packet_disconnect',
 }
 
 client_decoders = {
@@ -94,6 +97,22 @@ def decodeChat(buffer):
 
 def decodeTime(buffer):
 	return { 'time': nbt.TAG_Long(buffer=buffer).value, }
+
+def decodeInventory(buffer):
+	packet = {
+		'type':		nbt.TAG_Int(buffer=buffer).value,
+		'count':	nbt.TAG_Short(buffer=buffer).value,
+		'items':	{}
+	}
+		
+	for num in xrange(packet['count']):
+		itemid = nbt.TAG_Short(buffer=buffer).value
+		if (itemid != -1):
+			count = nbt.TAG_Byte(buffer=buffer).value
+			health = nbt.TAG_Short(buffer=buffer).value
+			packet['items'][num] = {'itemid': itemid, 'count': count, 'health': health}
+	
+	return packet
 
 def decodeFlying(buffer):
 	return { 'flying': nbt.TAG_Byte(buffer=buffer).value>=1 , }
@@ -256,7 +275,7 @@ def decodePreChunk(buffer):
 	return {
 		'x':		nbt.TAG_Int(buffer=buffer).value,
 		'z':		nbt.TAG_Int(buffer=buffer).value,
-		'mode':		nbt.TAG_Byte(buffer=buffer).value >=1,
+		'rotation':	nbt.TAG_Byte(buffer=buffer).value,
 		}
 
 def decodeMapChunk(buffer):
@@ -299,13 +318,14 @@ def decodeBlockChange(buffer):
 	
 def decodeDisconnect(buffer):
 	return { 'reason': nbt.TAG_String(buffer=buffer).value, }
-	
+
 server_decoders = {
 	packet_keepalive:None,
 	packet_handshake:decodeSHandshake,
 	packet_login:decodeSLogin,
 	packet_chat:decodeChat,
 	packet_time:decodeTime,
+	packet_inventory:decodeInventory,
 	packet_flying:decodeFlying,
 	packet_playerpos:decodePlayerPosition,
 	packet_playerlook:decodePlayerLook,
