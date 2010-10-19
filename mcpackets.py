@@ -297,7 +297,7 @@ def decodeMapChunk(buffer):
 		'size_x':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_y':	nbt.TAG_Byte(buffer=buffer).value,
 		'size_z':	nbt.TAG_Byte(buffer=buffer).value,
-		'chunk':	nbt.TAG_Byte_Array(buffer=buffer).value,
+		'chunk':	nbt.TAG_Byte_Array(buffer=buffer).value, # size is an int!
 		}
 
 def decodeMultiBlockChange(buffer):
@@ -331,7 +331,7 @@ def decodeComplexEntity(buffer):
 		'x':		nbt.TAG_Int(buffer=buffer).value,
 		'y':		nbt.TAG_Short(buffer=buffer).value,
 		'z':		nbt.TAG_Int(buffer=buffer).value,
-		'payload':	nbt.TAG_Byte_Array(buffer=buffer).value,
+		'payload':	nbt.TAG_Byte_Array(buffer=buffer).value, # size is a short!
 		}
 	
 def decodeDisconnect(buffer):
