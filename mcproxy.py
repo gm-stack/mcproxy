@@ -112,7 +112,6 @@ f [number] - add packet to filtering whitelist
 f [-number] - remove packet from filtering whitelist
 """
 
-
 if __name__ == "__main__":
 	
 	#bring up shell
