@@ -44,7 +44,7 @@ class FowardingBuffer():
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
-		trunc = True
+		trunc = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
 			trunc = True
