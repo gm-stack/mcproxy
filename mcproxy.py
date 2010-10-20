@@ -28,23 +28,17 @@ class FowardingBuffer():
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
-		trunc = False
+		truncate = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
-			trunc = True
+			truncate = True
 		rpack = " ".join([hexlify(byte) for byte in rpack])
-		if trunc: rpack += "..."
+		if truncate: rpack += " ..."
 		return rpack
 
 def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	while True:
-		msg = clientsocket.recv(32768)
-		serversocket.send(msg)
-		#if (dump_packets == 1):
-		#	if (dumpfilter == 0):
-		#		print "client -> server: %s" % mcpackets.packet_name(ord(msg[0]))
-		#	else:
-		#		pass
+		serversocket.send(clientsocket.recv(32768))
 
 def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	buff = FowardingBuffer(serversocket, clientsocket)
@@ -115,20 +109,22 @@ f [-number] - remove packet from filtering whitelist
 if __name__ == "__main__":
 	
 	#bring up shell
-	thread.start_new_thread(ishell, (serverprops,))
+	#thread.start_new_thread(ishell, (serverprops,))
 	
-	#
-	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
-	#
+	#====================================================================================#
+	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
+	#====================================================================================#
+	
 	# Client Socket
-	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	clientsocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	clientsocket.bind(('127.0.0.1', 25565))
-	clientsocket.listen(1)
+	listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	listensocket.bind(('127.0.0.1', 25565))
+	listensocket.listen(1)
 	print "Waiting for connection..."
-	conn, addr = clientsocket.accept()
+	clientsocket, addr = listensocket.accept()
 	print "Connection accepted from %s" % str(addr)
 	clientqueue = Queue()
+	
 	# Server Socket
 	host = '58.96.109.73'
 	port = 25565
@@ -138,6 +134,8 @@ if __name__ == "__main__":
 	serverqueue = Queue()
 	
 	#start processing threads	
-	thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue, serverprops))
-	thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, serverprops))
-
+	thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	
+	while True:
+		time.sleep(100)
