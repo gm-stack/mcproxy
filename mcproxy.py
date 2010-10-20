@@ -24,11 +24,12 @@ serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.connect((host,port))
 serverqueue = Queue()
 
-dump_packets = False
-dumpfilter = False
-filterlist = []
-locfind = False
-hexdump = False
+class serverprops():
+	dump_packets = False
+	dumpfilter = False
+	filterlist = []
+	locfind = False
+	hexdump = False
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -55,17 +56,17 @@ class FowardingBuffer():
 		return rpack
 
 
-def c2s(clientsocket,serversocket, clientqueue, serverqueue):
+def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	while True:
 		msg = clientsocket.recv(32768)
 		serversocket.send(msg)
-		if (dump_packets == 1):
-			if (dumpfilter == 0):
-				print "client -> server: %s" % mcpackets.packet_name(ord(msg[0]))
-			else:
-				pass
+		#if (dump_packets == 1):
+		#	if (dumpfilter == 0):
+		#		print "client -> server: %s" % mcpackets.packet_name(ord(msg[0]))
+		#	else:
+		#		pass
 
-def s2c(clientsocket,serversocket, clientqueue, serverqueue, locfind, filterlist):
+def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
@@ -73,42 +74,48 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, locfind, filterlist
 			packet = mcpackets.new_decoder[packetid]['decoder'](buffer=buff)#, packetid=packetid)
 			#print mcpackets.new_decoder[packetid]['name'], ":", packet
 		elif packetid == 0:
-			print "keepalive" 
+			packet = None
 		else:
 			print "unknown packet 0x%2X" % packetid
-		print buff.packet_end()
+			continue
+		packet_info(packetid, packet, buff, serverprops)
 		
-		if dump_packets:
-			if not dumpfilter or packetid in filterlist:
-				print mcpackets.new_decoder[packetid]['name'], ":", packet
-			if locfind and new_decoder[packetid]['name'] == "playerposition":
-				print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
+def packet_info(packetid, packet, buff, serverprops):
+	if serverprops.dump_packets:
+		if not serverprops.dumpfilter or packetid in serverprops.filterlist:
+			print mcpackets.new_decoder[packetid]['name'], ":", packet
+		if serverprops.hexdump:
+			print buff.packet_end()
+		else:
+			buff.packet_end()
+		if serverprops.locfind and new_decoder[packetid]['name'] == "playerposition":
+			print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
 
-thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue))
-thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, locfind, filterlist))
+thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue, serverprops))
+thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, serverprops))
 
 while True:
 	command = raw_input(">")
 	command = command.split(" ")
 	commandname = command[0]
 	if (commandname == "d"):
-		dump_packets = not dump_packets
-		print "packet dumping is", ("on" if dump_packets else "off")
+		serverprops.dump_packets = not serverprops.dump_packets
+		print "packet dumping is", ("on" if serverprops.dump_packets else "off")
 	elif (commandname == "p"):
-		locfind = not locfind
-		print "location reporting is", ("on" if locfind else "off")
+		serverprops.locfind = not serverprops.locfind
+		print "location reporting is", ("on" if serverprops.locfind else "off")
 	elif (commandname == "f"):
 		if len(command) == 1:
-			dumpfilter = not dumpfilter
-			print "dumpfilter is", ("on" if dumpfilter else "off")
+			serverprops.dumpfilter = not serverprops.dumpfilter
+			print "dumpfilter is", ("on" if serverprops.dumpfilter else "off")
 		if len(command) >= 2:
 			for cmd in command[1:]:
 				try:
 					packtype = int(cmd)
 					if packtype > 0:
-						filterlist.append(packtype)
+						serverprops.filterlist.append(packtype)
 					if packtype < 0:
-						filterlist.remove(-1*packtype)
+						serverprops.filterlist.remove(-1*packtype)
 				except:
 					print "could not understand", cmd
 	elif (commandname == "t"):
@@ -117,7 +124,7 @@ while True:
 		life = 0
 		conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
 	elif (commandname == "e"):
-		hexdump = not hexdump
+		serverprops.hexdump = not serverprops.hexdump
 		print "hexdump is", ("on" if hexdump else "off")
 	elif (commandname == "h"):
 		print """d - toggle dumping of packets
