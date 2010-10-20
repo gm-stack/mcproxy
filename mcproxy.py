@@ -1,13 +1,9 @@
 #!/usr/bin/env python
-import thread
-import socket
+import thread, socket, struct, time, sys, traceback
 import mcpackets
-import struct
-import time
 import nbt
-import sys, traceback
+from Queue import Queue
 from binascii import hexlify
-#from StringIO import StringIO
 #
 # server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
 #
@@ -48,9 +44,12 @@ class FowardingBuffer():
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
-		if len(rpack) > 16:
-			rpack = rpack[:16]
+		trunc = True
+		if len(rpack) > 32:
+			rpack = rpack[:32]
+			trunc = True
 		rpack = " ".join([hexlify(byte) for byte in rpack])
+		if trunc: rpack += "..."
 		return rpack
 
 
@@ -68,11 +67,10 @@ def s2c(clientsocket,serversocket, locfind, filterlist):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.packet_names.keys() and mcpackets.server_decoders[packetid]:
-			#print "packet : 0x%2X" % packetid
-			packet = mcpackets.server_decoders[packetid](buffer=buff)
-			print mcpackets.packet_names[packetid], ":", packet
-		elif packetid == mcpackets.packet_keepalive:
+		if packetid in mcpackets.new_decoder.keys() and mcpackets.new_decoder[packetid]['decoder']:
+			packet = mcpackets.new_decoder[packetid]['decoder'](buffer=buff)#, packetid=packetid)
+			print mcpackets.new_decoder[packetid]['name'], ":", packet
+		elif packetid == 0:
 			print "keepalive" 
 		else:
 			print "unknown packet 0x%2X" % packetid
