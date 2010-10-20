@@ -44,7 +44,7 @@ class FowardingBuffer():
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
-		trunc = False
+		trunc = True
 		if len(rpack) > 32:
 			rpack = rpack[:32]
 			trunc = True
@@ -76,22 +76,6 @@ def s2c(clientsocket,serversocket, locfind, filterlist):
 			print "unknown packet 0x%2X" % packetid
 		
 		print buff.packet_end()
-		
-		#msg = serversocket.recv(32768)
-		#clientsocket.send(msg)
-		#if dump_packets:
-		#	if not dumpfilter:
-		#		print "server -> client: %s" % mcpackets.packet_names[packetid]
-		#		print packet
-		#	else:
-		#		packet = mcpackets.decodeGeneric(msg)
-		#		if packet['type'] in [mcpackets.packet_addtoinv]:
-		#			print mcpackets.server_decode(msg)
-		#if locfind:
-		#	a = mcpackets.decodeGeneric(msg)
-		#	if (a['type'] == mcpackets.packet_playerpos):
-		#		print "location found"
-		#		locfind = 0
 
 
 thread.start_new_thread(c2s,(conn,serversocket))
@@ -103,9 +87,11 @@ while True:
 	commandname = command[0]
 	if (commandname == "d"):
 		dump_packets = not dump_packets
-	if (commandname == "p"):
-		locfind = True
-	if (commandname == "f"):
+		print "packet dumping is", ("on" if dump_packets else "off")
+	elif (commandname == "p"):
+		locfind = not locfind
+		print "location reporting is", ("on" if locfind else "off")
+	elif (commandname == "f"):
 		if len(command) == 1:
 			dumpfilter = not dumpfilter
 			print "dumpfilter is", ("on" if dumpfilter else "off")
@@ -119,8 +105,15 @@ while True:
 						filterlist.remove(-1*packtype)
 				except:
 					print "could not understand", cmd
-	if (commandname == "t"):
+	elif (commandname == "t"):
 		itemtype = 17
 		amount = 1
 		life = 0
 		conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
+	elif (commandname == "h"):
+		print """d - toggle dumping of packets
+p - toggle location finding
+f - toggle packet filtering
+f [number] - add packet to filtering whitelist
+f [-number] - remove packet from filtering whitelist
+"""
