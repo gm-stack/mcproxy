@@ -28,6 +28,7 @@ dump_packets = False
 dumpfilter = False
 filterlist = []
 locfind = False
+hexdump = False
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -83,8 +84,8 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, locfind, filterlist
 			if locfind and new_decoder[packetid]['name'] == "playerposition":
 				print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
 
-thread.start_new_thread(c2s,(conn,serversocket))
-thread.start_new_thread(s2c,(conn,serversocket,locfind, filterlist))
+thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue))
+thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, locfind, filterlist))
 
 while True:
 	command = raw_input(">")
