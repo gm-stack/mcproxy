@@ -305,7 +305,7 @@ new_decoder = {
 			0x0A: {'name':'flying',				'decoder': decodeFlying,			'hooks': []},
 			0x0B: {'name':'playerposition',		'decoder': decodePlayerPosition,	'hooks': []},
 			0x0C: {'name':'playerlook',			'decoder': decodePlayerLook,		'hooks': []},
-			0x0D: {'name':'playermovelook',		'decoder': decodePlayerPosition,	'hooks': []},
+			0x0D: {'name':'playermovelook',		'decoder': decodePlayerMoveAndLook,	'hooks': []},
 			# world interraction packets
 			0x0E: {'name':'blockdig',			'decoder': decodeBlockDig,			'hooks': []},
 			0x0F: {'name':'blockplace',			'decoder': decodeBlockPlace,		'hooks': []},
@@ -325,7 +325,7 @@ new_decoder = {
 			0x1E: {'name':'entity',				'decoder': decodeEntity,			'hooks': []},
 			0x1F: {'name':'relentmove',			'decoder': decodeRelativeEntityMove,'hooks': []},
 			0x20: {'name':'entitylook',			'decoder': decodeEntityLook,		'hooks': []},
-			0x21: {'name':'relentmovelook',		'decoder': decodeEntityMoveAndLook, 'hooks': []},
+			0x21: {'name':'relentmovelook',		'decoder': decodeEntityMoveAndLook, 'hooks':[]},
 			0x22: {'name':'enttele',			'decoder': decodeEntityTeleport,	'hooks': []},
 			
 			#map
@@ -338,8 +338,6 @@ new_decoder = {
 			0xFF: {'name':'disconnect',			'decoder': decodeDisconnect,		'hooks': []},
 			
 			}
-
-names = dict(map(lambda ent: (new_decoder[ent]['name'], ent), new_decoder))
 
 def server_decode(packet):
 	byte = ord(packet[0])
