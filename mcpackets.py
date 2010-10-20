@@ -36,51 +36,6 @@ packet_blockchange = 0x35
 packet_complexent = 0x3B
 packet_disconnect = 0xFF
 
-def packet_name(byte):
-	if packet_names.has_key(byte):
-		return packet_names[byte]
-	else:
-		return "Unknown packet type 0x%.2X" % byte
-
-packet_names = {
-	packet_keepalive:'packet_keepalive',
-	packet_login:'packet_login',
-	packet_handshake:'packet_handshake',
-	packet_chat:'packet_chat',
-	packet_time:'packet_time',
-	packet_inventory:'packet_inventory',
-	packet_spawnposition:'packet_spawnposition',
-	packet_flying:'packet_flying',
-	packet_playerpos:'packet_playerpos',
-	packet_playerlook:'packet_playerlook',
-	packet_playermovelook:'packet_playermovelook',
-	packet_blockdig:'packet_blockdig',
-	packet_place:'packet_place',
-	packet_blockitemswitch:'packet_blockitemswitch',
-	packet_addtoinv:'packet_addtoinv',
-	packet_armanim:'packet_armanim',
-	packet_namedentspawn:'packet_namedentspawn',
-	packet_pickupspawn:'packet_pickupspawn',
-	packet_collectitem:'packet_collectitem',
-	packet_addobject:'packet_addobject',
-	packet_mobspawn:'packet_mobspawn',
-	packet_destroyent:'packet_destroyent',
-	packet_entity:'packet_entity',
-	packet_relentmove:'packet_relentmove',
-	packet_entitylook:'packet_entitylook',
-	packet_relentmovelook:'packet_relentmovelook',
-	packet_enttele:'packet_enttele',
-	packet_prechunk:'packet_prechunk',
-	packet_mapchunk:'packet_mapchunk',
-	packet_multiblockchange:'packet_multiblockchange',
-	packet_blockchange:'packet_blockchange',
-	packet_complexent:'packet_complexent',
-	packet_disconnect:'packet_disconnect',
-}
-
-client_decoders = {
-
-}
 
 def decodeSHandshake(buffer):
 	return {
@@ -88,8 +43,6 @@ def decodeSHandshake(buffer):
 	}
 
 def decodeSLogin(buffer):
-	#protVer, blank1, blank2 = struct.unpack("!IBB", buffer.read(6))
-	#assert(blank1==0 and blank2==0)
 	return {
 		'protoversion':nbt.TAG_Int(buffer=buffer).value,
 		'blank1':nbt.TAG_Byte(buffer=buffer).value,
@@ -337,59 +290,52 @@ def decodeComplexEntity(buffer):
 def decodeDisconnect(buffer):
 	return { 'reason': nbt.TAG_String(buffer=buffer).value, }
 
-server_decoders = {
-	packet_keepalive:None,
-	packet_handshake:decodeSHandshake,
-	packet_login:decodeSLogin,
-	packet_chat:decodeChat,
-	packet_time:decodeTime,
-	packet_inventory:decodeInventory,
-	packet_spawnposition:decodeSpawnPosition,
-	packet_flying:decodeFlying,
-	packet_playerpos:decodePlayerPosition,
-	packet_playerlook:decodePlayerLook,
-	packet_playermovelook:decodePlayerMoveAndLook,
-	packet_blockdig:decodeBlockDig,
-	packet_place:decodeBlockPlace,
-	packet_blockitemswitch:decodeItemSwitch,
-	packet_addtoinv:decodeSAddToInventory,
-	packet_armanim:decodeAnimateArm,
-	packet_namedentspawn:decodeNamedEntitySpawn,
-	packet_pickupspawn:decodePickupSpawn,
-	packet_collectitem:decodeCollectItem,
-	packet_addobject:decodeVehicleSpawn,
-	packet_mobspawn:decodeMobSpawn,
-	packet_destroyent:decodeDestroyEntity,
-	packet_entity:decodeEntity,
-	packet_relentmove:decodeRelativeEntityMove,
-	packet_entitylook:decodeEntityLook,
-	packet_relentmovelook:decodeEntityMoveAndLook,
-	packet_enttele:decodeEntityTeleport,
-	packet_prechunk:decodePreChunk,
-	packet_mapchunk:decodeMapChunk,
-	packet_multiblockchange:decodeMultiBlockChange,
-	packet_blockchange:decodeBlockChange,
-	packet_complexent:decodeComplexEntity,
-	packet_disconnect:decodeDisconnect,
-}
+
 
 new_decoder = {
 			# basic packets
-			0x00: {'name':'keepalive',		'decoder': None, 				'hooks': []},  
-			0x01: {'name':'login',			'decoder': decodeSLogin,		'hooks': []},
-			0x02: {'name':'handshake',		'decoder': decodeSHandshake,	'hooks': []},
-			0x03: {'name':'chat',			'decoder': decodeChat,			'hooks': []},
-			0x04: {'name':'time',			'decoder': decodeTime,			'hooks': []},
-			0x05: {'name':'inventory',		'decoder': decodeInventory,		'hooks': []},
-			0x06: {'name':'spawnposition',	'decoder': decodeSpawnPosition,	'hooks': []},
+			0x00: {'name':'keepalive',			'decoder': None, 					'hooks': []},  
+			0x01: {'name':'login',				'decoder': decodeSLogin,			'hooks': []},
+			0x02: {'name':'handshake',			'decoder': decodeSHandshake,		'hooks': []},
+			0x03: {'name':'chat',				'decoder': decodeChat,				'hooks': []},
+			0x04: {'name':'time',				'decoder': decodeTime,				'hooks': []},
+			0x05: {'name':'inventory',			'decoder': decodeInventory,			'hooks': []},
+			0x06: {'name':'spawnposition',		'decoder': decodeSpawnPosition,		'hooks': []},
 			# playerstate packets
-			0x0A: {'name':'flying',			'decoder': decodeFlying,		'hooks': []},
-			0x0B: {'name':'playerposition',	'decoder': decodePlayerPosition,'hooks': []},
-			0x0C: {'name':'playerlook',		'decoder': decodePlayerLook,	'hooks': []},
-			0x0D: {'name':'playermovelook',	'decoder': decodePlayerPosition,'hooks': []},
+			0x0A: {'name':'flying',				'decoder': decodeFlying,			'hooks': []},
+			0x0B: {'name':'playerposition',		'decoder': decodePlayerPosition,	'hooks': []},
+			0x0C: {'name':'playerlook',			'decoder': decodePlayerLook,		'hooks': []},
+			0x0D: {'name':'playermovelook',		'decoder': decodePlayerPosition,	'hooks': []},
 			# world interraction packets
-			0x0E: {'name':'blockdig',		'decoder': decodeBlockDig,		'hooks': []},
-			0x0F: {'name':'blockplace',		'decoder': decodeBlockPlace,	'hooks': []},
+			0x0E: {'name':'blockdig',			'decoder': decodeBlockDig,			'hooks': []},
+			0x0F: {'name':'blockplace',			'decoder': decodeBlockPlace,		'hooks': []},
+			
+			#more playerstate
+			0x10: {'name':'blockitemswitch',	'decoder': decodeItemSwitch,	 	'hooks': []},
+			0x11: {'name':'addtoinv',			'decoder': decodeSAddToInventory,	'hooks': []},
+			0x12: {'name':'armanim',			'decoder': decodeAnimateArm,		'hooks': []},
+			
+			#entities
+			0x14: {'name':'namedentspawn',		'decoder': decodeNamedEntitySpawn,	'hooks': []},
+			0x15: {'name':'pickupspawn',		'decoder': decodePickupSpawn,		'hooks': []},
+			0x16: {'name':'collectitem',		'decoder': decodeCollectItem,		'hooks': []},
+			0x17: {'name':'vehiclespawn',		'decoder': decodeVehicleSpawn,		'hooks': []},
+			0x18: {'name':'mobspawn',			'decoder': decodeMobSpawn,			'hooks': []},
+			0x1D: {'name':'destroyent',			'decoder': decodeDestroyEntity,		'hooks': []},
+			0x1E: {'name':'entity',				'decoder': decodeEntity,			'hooks': []},
+			0x1F: {'name':'relentmove',			'decoder': decodeRelativeEntityMove,'hooks': []},
+			0x20: {'name':'entitylook',			'decoder': decodeEntityLook,		'hooks': []},
+			0x21: {'name':'relentmovelook',		'decoder': decodeEntityMoveAndLook, 'hooks':[]},
+			0x22: {'name':'enttele',			'decoder': decodeEntityTeleport,	'hooks': []},
+			
+			#map
+			0x32: {'name':'prechunk',			'decoder': decodePreChunk,			'hooks': []},
+			0x33: {'name':'mapchunk',			'decoder': decodeMapChunk,			'hooks': []},
+			0x34: {'name':'multiblockchange',	'decoder': decodeMultiBlockChange,	'hooks': []},
+			0x35: {'name':'blockchange',		'decoder': decodeBlockChange,		'hooks': []},
+			
+			0x3B: {'name':'complexent', 		'decoder': decodeComplexEntity,		'hooks': []},
+			0xFF: {'name':'disconnect',			'decoder': decodeDisconnect,		'hooks': []},
 			
 			}
 
