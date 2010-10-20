@@ -1,29 +1,10 @@
 #!/usr/bin/env python
 import thread, socket, struct, time, sys, traceback
-import mcpackets
-import nbt
+import mcpackets, nbt
 from Queue import Queue
 from binascii import hexlify
-#
-# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
-#
 
-clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-clientsocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-clientsocket.bind(('127.0.0.1', 25565))
-clientsocket.listen(1)
-print "Waiting for connection..."
-conn, addr = clientsocket.accept()
-print "Connection accepted from %s" % str(addr)
-clientqueue = Queue()
-host = '58.96.109.73'
-port = 25565
-
-print "Connecting to %s..." % host	
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serversocket.connect((host,port))
-serverqueue = Queue()
-
+#storage class for default server properties
 class serverprops():
 	dump_packets = False
 	dumpfilter = False
@@ -54,7 +35,6 @@ class FowardingBuffer():
 		rpack = " ".join([hexlify(byte) for byte in rpack])
 		if trunc: rpack += "..."
 		return rpack
-
 
 def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	while True:
@@ -91,45 +71,74 @@ def packet_info(packetid, packet, buff, serverprops):
 		if serverprops.locfind and decoders[packetid]['name'] == "playerposition":
 			print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
 
-thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue, serverprops))
-thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, serverprops))
-
-while True:
-	command = raw_input(">")
-	command = command.split(" ")
-	commandname = command[0]
-	if (commandname == "d"):
-		serverprops.dump_packets = not serverprops.dump_packets
-		print "packet dumping is", ("on" if serverprops.dump_packets else "off")
-	elif (commandname == "p"):
-		serverprops.locfind = not serverprops.locfind
-		print "location reporting is", ("on" if serverprops.locfind else "off")
-	elif (commandname == "f"):
-		if len(command) == 1:
-			serverprops.dumpfilter = not serverprops.dumpfilter
-			print "dumpfilter is", ("on" if serverprops.dumpfilter else "off")
-		if len(command) >= 2:
-			for cmd in command[1:]:
-				try:
-					packtype = int(cmd)
-					if packtype > 0:
-						serverprops.filterlist.append(packtype)
-					if packtype < 0:
-						serverprops.filterlist.remove(-1*packtype)
-				except:
-					print "could not understand", cmd
-	elif (commandname == "t"):
-		itemtype = 17
-		amount = 1
-		life = 0
-		conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
-	elif (commandname == "e"):
-		serverprops.hexdump = not serverprops.hexdump
-		print "hexdump is", ("on" if hexdump else "off")
-	elif (commandname == "h"):
-		print """d - toggle dumping of packets
+def ishell(serverprops):
+	while True:
+		command = raw_input(">")
+		command = command.split(" ")
+		commandname = command[0]
+		if (commandname == "d"):
+			serverprops.dump_packets = not serverprops.dump_packets
+			print "packet dumping is", ("on" if serverprops.dump_packets else "off")
+		elif (commandname == "p"):
+			serverprops.locfind = not serverprops.locfind
+			print "location reporting is", ("on" if serverprops.locfind else "off")
+		elif (commandname == "f"):
+			if len(command) == 1:
+				serverprops.dumpfilter = not serverprops.dumpfilter
+				print "dumpfilter is", ("on" if serverprops.dumpfilter else "off")
+			if len(command) >= 2:
+				for cmd in command[1:]:
+					try:
+						packtype = int(cmd)
+						if packtype > 0:
+							serverprops.filterlist.append(packtype)
+						if packtype < 0:
+							serverprops.filterlist.remove(-1*packtype)
+					except:
+						print "could not understand", cmd
+		elif (commandname == "t"):
+			itemtype = 17
+			amount = 1
+			life = 0
+			#conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
+		elif (commandname == "e"):
+			serverprops.hexdump = not serverprops.hexdump
+			print "hexdump is", ("on" if hexdump else "off")
+		elif (commandname == "h"):
+			print """d - toggle dumping of packets
 p - toggle location finding
 f - toggle packet filtering
 f [number] - add packet to filtering whitelist
 f [-number] - remove packet from filtering whitelist
 """
+
+
+if __name__ == "__main__":
+	
+	#bring up shell
+	thread.start_new_thread(ishell, (serverprops,))
+	
+	#
+	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar
+	#
+	# Client Socket
+	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	clientsocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	clientsocket.bind(('127.0.0.1', 25565))
+	clientsocket.listen(1)
+	print "Waiting for connection..."
+	conn, addr = clientsocket.accept()
+	print "Connection accepted from %s" % str(addr)
+	clientqueue = Queue()
+	# Server Socket
+	host = '58.96.109.73'
+	port = 25565
+	print "Connecting to %s..." % host	
+	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	serversocket.connect((host,port))
+	serverqueue = Queue()
+	
+	#start processing threads	
+	thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue, serverprops))
+	thread.start_new_thread(s2c,(conn,serversocket, clientqueue, serverqueue, serverprops))
+
