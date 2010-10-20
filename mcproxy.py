@@ -41,19 +41,21 @@ def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 		serversocket.send(clientsocket.recv(32768))
 
 def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
+
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.decoders.keys() and mcpackets.decoders[packetid]['decoder']:
-			packet = mcpackets.decoders[packetid]['decoder'](buffer=buff)#, packetid=packetid)
-			#print mcpackets.decoders[packetid]['name'], ":", packet
+		if packetid in mcpackets.decoders.keys() and mcpackets.decoders[packetid]['decoders']:
+			packet = mcpackets.decode("s2c", buff, packetid)
 		elif packetid == 0:
 			packet = None
 		else:
 			print "unknown packet 0x%2X" % packetid
 			continue
-		packet_info(packetid, packet, buff, serverprops)
 		
+		packet_info(packetid, packet, buff, serverprops)
+
+
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or packetid in serverprops.filterlist:
@@ -100,11 +102,11 @@ def ishell(serverprops):
 			print "hexdump is", ("on" if hexdump else "off")
 		elif (commandname == "h"):
 			print """d - toggle dumping of packets
-p - toggle location finding
-f - toggle packet filtering
-f [number] - add packet to filtering whitelist
-f [-number] - remove packet from filtering whitelist
-"""
+					p - toggle location finding
+					f - toggle packet filtering
+					f [number] - add packet to filtering whitelist
+					f [-number] - remove packet from filtering whitelist
+					""".replace("\t","")
 
 if __name__ == "__main__":
 	
