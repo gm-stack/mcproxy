@@ -64,7 +64,7 @@ def c2s(clientsocket,serversocket):
 			else:
 				pass
 
-def s2c(clientsocket,serversocket, locfind):
+def s2c(clientsocket,serversocket, locfind, filterlist):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
@@ -97,7 +97,7 @@ def s2c(clientsocket,serversocket, locfind):
 
 
 thread.start_new_thread(c2s,(conn,serversocket))
-thread.start_new_thread(s2c,(conn,serversocket,locfind))
+thread.start_new_thread(s2c,(conn,serversocket,locfind, filterlist))
 
 while True:
 	command = raw_input(">")
