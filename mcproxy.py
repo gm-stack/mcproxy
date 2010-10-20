@@ -15,19 +15,19 @@ clientsocket.listen(1)
 print "Waiting for connection..."
 conn, addr = clientsocket.accept()
 print "Connection accepted from %s" % str(addr)
-
+clientqueue = Queue()
 host = '58.96.109.73'
 port = 25565
 
 print "Connecting to %s..." % host	
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.connect((host,port))
+serverqueue = Queue()
 
 dump_packets = False
 dumpfilter = False
 filterlist = []
 locfind = False
-hexdump = False
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -45,7 +45,7 @@ class FowardingBuffer():
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
-		trunc = True
+		trunc = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
 			trunc = True
@@ -54,7 +54,7 @@ class FowardingBuffer():
 		return rpack
 
 
-def c2s(clientsocket,serversocket):
+def c2s(clientsocket,serversocket, clientqueue, serverqueue):
 	while True:
 		msg = clientsocket.recv(32768)
 		serversocket.send(msg)
@@ -64,20 +64,24 @@ def c2s(clientsocket,serversocket):
 			else:
 				pass
 
-def s2c(clientsocket,serversocket, locfind, filterlist):
+def s2c(clientsocket,serversocket, clientqueue, serverqueue, locfind, filterlist):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
 		if packetid in mcpackets.new_decoder.keys() and mcpackets.new_decoder[packetid]['decoder']:
 			packet = mcpackets.new_decoder[packetid]['decoder'](buffer=buff)#, packetid=packetid)
-			print mcpackets.new_decoder[packetid]['name'], ":", packet
+			#print mcpackets.new_decoder[packetid]['name'], ":", packet
 		elif packetid == 0:
 			print "keepalive" 
 		else:
 			print "unknown packet 0x%2X" % packetid
-		
 		print buff.packet_end()
-
+		
+		if dump_packets:
+			if not dumpfilter or packetid in filterlist:
+				print mcpackets.new_decoder[packetid]['name'], ":", packet
+			if locfind and new_decoder[packetid]['name'] == "playerposition":
+				print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
 
 thread.start_new_thread(c2s,(conn,serversocket))
 thread.start_new_thread(s2c,(conn,serversocket,locfind, filterlist))
