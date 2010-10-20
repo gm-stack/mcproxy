@@ -331,7 +331,7 @@ def decodeComplexEntity(buffer):
 		'x':		nbt.TAG_Int(buffer=buffer).value,
 		'y':		nbt.TAG_Short(buffer=buffer).value,
 		'z':		nbt.TAG_Int(buffer=buffer).value,
-		'payload':	nbt.TAG_Byte_Array(buffer=buffer).value, # size is a short!
+		'payload':	nbt.TAG_Byte_Array(buffer=buffer, lentype=nbt.TAG_Short).value, # size is a short!
 		}
 	
 def decodeDisconnect(buffer):
@@ -372,6 +372,26 @@ server_decoders = {
 	packet_complexent:decodeComplexEntity,
 	packet_disconnect:decodeDisconnect,
 }
+
+new_decoder = {
+			# basic packets
+			0x00: {'name':'keepalive',		'decoder': None, 				'hooks': []},  
+			0x01: {'name':'login',			'decoder': decodeSLogin,		'hooks': []},
+			0x02: {'name':'handshake',		'decoder': decodeSHandshake,	'hooks': []},
+			0x03: {'name':'chat',			'decoder': decodeChat,			'hooks': []},
+			0x04: {'name':'time',			'decoder': decodeTime,			'hooks': []},
+			0x05: {'name':'inventory',		'decoder': decodeInventory,		'hooks': []},
+			0x06: {'name':'spawnposition',	'decoder': decodeSpawnPosition,	'hooks': []},
+			# playerstate packets
+			0x0A: {'name':'flying',			'decoder': decodeFlying,		'hooks': []},
+			0x0B: {'name':'playerposition',	'decoder': decodePlayerPosition,'hooks': []},
+			0x0C: {'name':'playerlook',		'decoder': decodePlayerLook,	'hooks': []},
+			0x0D: {'name':'playermovelook',	'decoder': decodePlayerPosition,'hooks': []},
+			# world interraction packets
+			0x0E: {'name':'blockdig',		'decoder': decodeBlockDig,		'hooks': []},
+			0x0F: {'name':'blockplace',		'decoder': decodeBlockPlace,	'hooks': []},
+			
+			}
 
 def server_decode(packet):
 	byte = ord(packet[0])
