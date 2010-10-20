@@ -27,6 +27,7 @@ dump_packets = False
 dumpfilter = False
 filterlist = []
 locfind = False
+hexdump = False
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -110,6 +111,9 @@ while True:
 		amount = 1
 		life = 0
 		conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
+	elif (commandname == "e"):
+		hexdump = not hexdump
+		print "hexdump is", ("on" if hexdump else "off")
 	elif (commandname == "h"):
 		print """d - toggle dumping of packets
 p - toggle location finding
