@@ -109,7 +109,7 @@ f [-number] - remove packet from filtering whitelist
 if __name__ == "__main__":
 	
 	#bring up shell
-	#thread.start_new_thread(ishell, (serverprops,))
+	thread.start_new_thread(ishell, (serverprops,))
 	
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
