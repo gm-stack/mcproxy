@@ -2,40 +2,6 @@ import struct
 import nbt
 
 # thanks to http://www.wiki.vg/minecraft/alpha/protocol
-packet_keepalive = 0x00
-packet_login = 0x01
-packet_handshake = 0x02
-packet_chat = 0x03
-packet_time = 0x04
-packet_inventory = 0x05
-packet_spawnposition = 0x06
-packet_flying = 0x0A
-packet_playerpos = 0x0B
-packet_playerlook = 0x0C
-packet_playermovelook = 0x0D
-packet_blockdig = 0x0E
-packet_place = 0x0F
-packet_blockitemswitch = 0x10
-packet_addtoinv = 0x11
-packet_armanim = 0x12
-packet_namedentspawn = 0x14
-packet_pickupspawn = 0x15
-packet_collectitem = 0x16
-packet_addobject = 0x17
-packet_mobspawn = 0x18
-packet_destroyent = 0x1D
-packet_entity = 0x1E
-packet_relentmove = 0x1F
-packet_entitylook = 0x20
-packet_relentmovelook = 0x21
-packet_enttele = 0x22
-packet_prechunk = 0x32
-packet_mapchunk = 0x33
-packet_multiblockchange = 0x34
-packet_blockchange = 0x35
-packet_complexent = 0x3B
-packet_disconnect = 0xFF
-
 
 def decodeSHandshake(buffer):
 	return {
@@ -290,9 +256,7 @@ def decodeComplexEntity(buffer):
 def decodeDisconnect(buffer):
 	return { 'reason': nbt.TAG_String(buffer=buffer).value, }
 
-
-
-new_decoder = {
+decoders = {
 			# basic packets
 			0x00: {'name':'keepalive',			'decoder': None, 					'hooks': []},  
 			0x01: {'name':'login',				'decoder': decodeSLogin,			'hooks': []},
@@ -325,7 +289,7 @@ new_decoder = {
 			0x1E: {'name':'entity',				'decoder': decodeEntity,			'hooks': []},
 			0x1F: {'name':'relentmove',			'decoder': decodeRelativeEntityMove,'hooks': []},
 			0x20: {'name':'entitylook',			'decoder': decodeEntityLook,		'hooks': []},
-			0x21: {'name':'relentmovelook',		'decoder': decodeEntityMoveAndLook, 'hooks':[]},
+			0x21: {'name':'relentmovelook',		'decoder': decodeEntityMoveAndLook, 'hooks': []},
 			0x22: {'name':'enttele',			'decoder': decodeEntityTeleport,	'hooks': []},
 			
 			#map
@@ -339,8 +303,11 @@ new_decoder = {
 			
 			}
 
-def server_decode(packet):
-	byte = ord(packet[0])
+name_to_id = dict(map(lambda id: (decoders[id]['name'], id), decoders))
+
+def s_decode(buffer, packetID):
+	if isinstance(decoders[packetID]['decoder'], dict):
+		pass
 	if server_decoders.has_key(byte):
 		return server_decoders[byte](packet)
 	else:

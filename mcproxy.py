@@ -70,9 +70,9 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	buff = FowardingBuffer(serversocket, clientsocket)
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.new_decoder.keys() and mcpackets.new_decoder[packetid]['decoder']:
-			packet = mcpackets.new_decoder[packetid]['decoder'](buffer=buff)#, packetid=packetid)
-			#print mcpackets.new_decoder[packetid]['name'], ":", packet
+		if packetid in mcpackets.decoders.keys() and mcpackets.decoders[packetid]['decoder']:
+			packet = mcpackets.decoders[packetid]['decoder'](buffer=buff)#, packetid=packetid)
+			#print mcpackets.decoders[packetid]['name'], ":", packet
 		elif packetid == 0:
 			packet = None
 		else:
@@ -83,12 +83,12 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or packetid in serverprops.filterlist:
-			print mcpackets.new_decoder[packetid]['name'], ":", packet
+			print mcpackets.decoders[packetid]['name'], ":", packet
 		if serverprops.hexdump:
 			print buff.packet_end()
 		else:
 			buff.packet_end()
-		if serverprops.locfind and new_decoder[packetid]['name'] == "playerposition":
+		if serverprops.locfind and decoders[packetid]['name'] == "playerposition":
 			print "Player is at (x:%i, y:%i, z:%i)" % (packet['x'],packet['y'],packet['z'])
 
 thread.start_new_thread(c2s,(conn,serversocket, clientqueue, serverqueue, serverprops))
