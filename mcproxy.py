@@ -126,12 +126,29 @@ def ishell(serverprops):
 					filter [number] - add packet to filtering whitelist
 					filter [-number] - remove packet from filtering whitelist
 					""".replace("\t","")
-		elif (commandname == "hook_test"):
-			#mcpackets.decoders[mcpackets.name_to_id['time']]['hooks'].append(hooks.timeHook)
-			#mcpackets.decoders[mcpackets.name_to_id['playerposition']]['hooks'].append(hooks.playerPosHook)
-			mcpackets.decoders[mcpackets.name_to_id['playerlook']]['hooks'].append(hooks.playerLookHook)
-			print "added hooks"
-			
+		elif (commandname == "hook"):
+			if (len(command) == 1):
+				print "no help yet"
+			else:
+				subcommand = command[1]
+				if subcommand == "list":
+					for hook in hooks.namedhooks:
+						print "%s: %s" % (hook, hooks.namedhooks[hook]['packet'])
+				elif subcommand == "reload":
+					try:
+						reload(hooks)
+						print "hooks reloaded"
+					except:
+						traceback.print_stack()
+						print "reload failed"
+				elif subcommand == "add":
+					hookname = command[2]
+					if hookname in hooks.namedhooks:
+						packet = hooks.namedhooks[hookname]['packet']
+						hookclass = hooks.namedhooks[hookname]['func']
+						mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
+					else:
+						print "hook %s not found" % hookname
 
 #storage class for default server properties
 class serverprops():

@@ -18,3 +18,9 @@ def playerPosHook(packetid, packet, serverprops, serverqueue, clientqueue):
 
 def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	print "player is pointing %s, vertical angle %i" % (positioning.humanReadableAngle(packet['rotation']), packet['pitch'])
+
+namedhooks = {
+	'timeHook': 		{ 'func': timeHook, 		'packet': 'time'},
+	'playerPosHook': 	{ 'func': playerPosHook,	'packet': 'playerposition'},
+	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
+}
