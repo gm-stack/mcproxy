@@ -251,7 +251,6 @@ def decodeMultiBlockChange(buffer):
 		'type':		None,
 		'meta':		None,
 		}
-	print "%i bytes" % packet['size'] 
 	for num in xrange(packet['size']):
 		coord = nbt.TAG_Short(buffer=buffer).value
 		packet['coords'].append(( (coord&0xF000)>>12, (coord&0x00FF), (coord&0x0F00)>>8, ))
