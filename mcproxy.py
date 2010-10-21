@@ -4,6 +4,7 @@ import mcpackets, nbt
 from queue import Queue
 from binascii import hexlify
 import hooks
+import gui
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -167,6 +168,7 @@ class serverprops():
 	filterlist = [0x01, 0x02, 0x03, 0xFF]
 	locfind = False
 	hexdump = False
+	screen = None
 
 if __name__ == "__main__":
 	
@@ -176,7 +178,7 @@ if __name__ == "__main__":
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
-	
+		
 	# Client Socket
 	listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -199,5 +201,7 @@ if __name__ == "__main__":
 	_thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	_thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	
+	gui.start_gui(serverprops)
+	gui.pygame_event_loop(serverprops)
 	while True:
-		time.sleep(100)
+		time.sleep(1000)
