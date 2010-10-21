@@ -40,7 +40,7 @@ def decodeInventory(buffer):
 		'items':	{}
 	}
 		
-	for num in xrange(packet['count']):
+	for num in range(packet['count']):
 		itemid = nbt.TAG_Short(buffer=buffer).value
 		if (itemid != -1):
 			count = nbt.TAG_Byte(buffer=buffer).value
@@ -251,7 +251,7 @@ def decodeMultiBlockChange(buffer):
 		'type':		None,
 		'meta':		None,
 		}
-	for num in xrange(packet['size']):
+	for num in range(packet['size']):
 		coord = nbt.TAG_Short(buffer=buffer).value
 		packet['coords'].append(( (coord&0xF000)>>12, (coord&0x00FF), (coord&0x0F00)>>8, ))
 	packet['type'] = buffer.read(packet['size'])
@@ -330,7 +330,7 @@ decoders = {
 	0xFF: {'name':'disconnect',			'decoders': [decodeDisconnect],			'hooks': []},
 	}
 
-name_to_id = dict(map(lambda id: (decoders[id]['name'], id), decoders))
+name_to_id = dict([(decoders[id]['name'], id) for id in decoders])
 
 #need these
 s2c = 0

@@ -127,7 +127,7 @@ class TAG_String(TAG):
 	def _parse_buffer(self, buffer, offset=None):
 		self.length = TAG_Short(buffer=buffer)
 		if self.length.value > 0:
-			self.value = unicode(buffer.read(self.length.value), "utf-8")
+			self.value = str(buffer.read(self.length.value), "utf-8")
 		else: self.value = None
 	
 	def _render_buffer(self, buffer, offset=None):
