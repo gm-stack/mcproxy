@@ -3,6 +3,7 @@ import thread, socket, struct, time, sys, traceback
 import mcpackets, nbt
 from Queue import Queue
 from binascii import hexlify
+import hooks
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -33,15 +34,14 @@ def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	
 	while True:
 		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.decoders.keys() and mcpackets.decoders[packetid]['decoders']:
+		if packetid in mcpackets.decoders.keys():
 			packet = mcpackets.decode("c2s", buff, packetid)
-		elif packetid == 0:
-			packet = None
 		else:
 			print "unknown packet 0x%2X from client" % packetid
 			continue
 		
 		packet_info(packetid, packet, buff, serverprops)
+		run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
 
 def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 
@@ -56,7 +56,18 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 			continue
 		
 		packet_info(packetid, packet, buff, serverprops)
+		run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
 
+
+def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
+	if mcpackets.decoders[packetid]['hooks']:
+		for hook in mcpackets.decoders[packetid]['hooks']:
+			try:
+				hook(packetid,packet,serverprops, serverqueue, clientqueue)
+			except e:
+				print "Hook crashed"
+				mcpackets.decoders[packetid]['hooks'].remove(hook)
+				#FIXME: make this report what happened
 
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
@@ -72,13 +83,13 @@ def ishell(serverprops):
 		command = raw_input(">")
 		command = command.split(" ")
 		commandname = command[0]
-		if (commandname == "d"):
+		if (commandname == "dumpPackets"):
 			serverprops.dump_packets = not serverprops.dump_packets
 			print "packet dumping is", ("on" if serverprops.dump_packets else "off")
-		elif (commandname == "p"):
+		elif (commandname == "findPlayer"):
 			serverprops.locfind = not serverprops.locfind
 			print "location reporting is", ("on" if serverprops.locfind else "off")
-		elif (commandname == "f"):
+		elif (commandname == "filter"):
 			if len(command) == 1:
 				serverprops.dumpfilter = not serverprops.dumpfilter
 				print "dumpfilter is", ("on" if serverprops.dumpfilter else "off")
@@ -92,21 +103,25 @@ def ishell(serverprops):
 							serverprops.filterlist.remove(-1*packtype)
 					except:
 						print "could not understand", cmd
-		elif (commandname == "t"):
+		elif (commandname == "inventory"):
 			itemtype = 17
 			amount = 1
 			life = 0
 			#conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
-		elif (commandname == "e"):
+		elif (commandname == "hexdump"):
 			serverprops.hexdump = not serverprops.hexdump
 			print "hexdump is", ("on" if hexdump else "off")
-		elif (commandname == "h"):
-			print """d - toggle dumping of packets
-					p - toggle location finding
-					f - toggle packet filtering
-					f [number] - add packet to filtering whitelist
-					f [-number] - remove packet from filtering whitelist
+		elif (commandname == "help"):
+			print """dumpPackets - toggle dumping of packets
+					findPlayer - toggle location finding
+					filter - toggle packet filtering
+					filter [number] - add packet to filtering whitelist
+					filter [-number] - remove packet from filtering whitelist
 					""".replace("\t","")
+		elif (commandname == "hook_test"):
+			mcpackets.decoders[mcpackets.name_to_id['time']]['hooks'].append(hooks.timeHook)
+			print "added hook for time"
+			
 
 #storage class for default server properties
 class serverprops():
@@ -136,7 +151,7 @@ if __name__ == "__main__":
 	clientqueue = Queue()
 	
 	# Server Socket
-	host = '58.96.109.73'
+	host = '123.243.183.29'
 	port = 25565
 	print "Connecting to %s..." % host	
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
