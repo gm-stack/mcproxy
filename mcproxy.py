@@ -128,7 +128,7 @@ def ishell(serverprops):
 					""".replace("\t","")
 		elif (commandname == "hook"):
 			if (len(command) == 1):
-				print "no help yet"
+				print "hook list: list hooks\nhook reload: reload hooks\nhook add hookname: add hook\nhook active: list active hooks\nhook remove hookname: remove a hook"
 			else:
 				subcommand = command[1]
 				if subcommand == "list":
@@ -149,6 +149,16 @@ def ishell(serverprops):
 						mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
 					else:
 						print "hook %s not found" % hookname
+				elif subcommand == "active":
+					for decoder in mcpackets.decoders.values():
+						for hook in decoder['hooks']:
+							print "%s: %s" % (decoder['name'], hooks.hook_to_name[hook])
+				elif subcommand == "remove":
+					hookname = command[2]
+					for decoder in mcpackets.decoders.values():
+						for hook in decoder['hooks']:
+							if hooks.hook_to_name[hook] == hookname:
+								decoder['hooks'].remove(hook)
 
 #storage class for default server properties
 class serverprops():

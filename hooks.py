@@ -24,3 +24,5 @@ namedhooks = {
 	'playerPosHook': 	{ 'func': playerPosHook,	'packet': 'playerposition'},
 	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
 }
+
+hook_to_name = dict(map(lambda id: (namedhooks[id]['func'], id), namedhooks))
