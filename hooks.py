@@ -7,3 +7,6 @@
 
 def timeHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	print "The time is: %i" % packet['time']
+	
+	
+	
