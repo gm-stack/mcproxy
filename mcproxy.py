@@ -11,9 +11,11 @@ class FowardingBuffer():
 		self.outsock = outsocket
 		self.lastpack = ""
 		
-	def read(self, bytes=0):
+	def read(self, nbytes):
 		#stack = traceback.extract_stack()
-		bytes = self.inbuff.read(bytes)
+		bytes = self.inbuff.read(nbytes)
+		if len(bytes) != nbytes:
+			raise RuntimeError("Sockets betrayed me!")
 		self.lastpack += bytes
 		self.outsock.send(bytes)
 		return bytes
@@ -71,7 +73,7 @@ def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
-		if not serverprops.dumpfilter or packetid in serverprops.filterlist:
+		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
 			print packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet
 		if serverprops.hexdump:
 			print buff.packet_end()
@@ -125,9 +127,9 @@ def ishell(serverprops):
 
 #storage class for default server properties
 class serverprops():
-	dump_packets = False
+	dump_packets = True
 	dumpfilter = True
-	filterlist = [0x01, 0x02, 0xFF]
+	filterlist = [0x01, 0x02, 0x03, 0xFF]
 	locfind = False
 	hexdump = False
 
