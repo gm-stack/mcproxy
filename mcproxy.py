@@ -71,8 +71,9 @@ def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 		for hook in mcpackets.decoders[packetid]['hooks']:
 			try:
 				hook(packetid,packet,serverprops, serverqueue, clientqueue)
-			except e:
-				print "Hook crashed"
+			except:
+				execption = traceback.extract_stack()[-1]
+				print "Hook crashed: File:%s, line %i in %s" % (execption[0], execption[1], execption[2])
 				mcpackets.decoders[packetid]['hooks'].remove(hook)
 				#FIXME: make this report what happened
 
