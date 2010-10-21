@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 import thread, socket, struct, time, sys, traceback
 import mcpackets, nbt
 from Queue import Queue
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 	clientqueue = Queue()
 	
 	# Server Socket
-	host = 'erudite.ath.cx'
+	host = '58.96.109.73'
 	port = 25565
 	print "Connecting to %s..." % host	
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
