@@ -7,9 +7,9 @@ import hooks
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
-		self.inbuff = insocket.makefile('r', 4096)
+		self.inbuff = insocket.makefile('rb', 4096)
 		self.outsock = outsocket
-		self.lastpack = ""
+		self.lastpack = b""
 		
 	def read(self, nbytes):
 		#stack = traceback.extract_stack()
@@ -17,17 +17,17 @@ class FowardingBuffer():
 		if len(bytes) != nbytes:
 			raise socket.error("Sockets betrayed me!")
 		self.lastpack += bytes
-		self.outsock.send(bytes)
+		self.outsock.send(bytes) #FIXME: bytes should be type bytes
 		return bytes
 	
 	def packet_end(self):
 		rpack = self.lastpack
-		self.lastpack = ""
+		self.lastpack = b""
 		truncate = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
 			truncate = True
-		rpack = " ".join([hexlify(byte) for byte in rpack])
+		rpack = " ".join([("%.2X " % byte) for byte in rpack])
 		if truncate: rpack += " ..."
 		return rpack
 
@@ -188,7 +188,7 @@ if __name__ == "__main__":
 	clientqueue = Queue()
 	
 	# Server Socket
-	host = '123.243.183.29'
+	host = '58.96.109.73'
 	port = 25565
 	print("Connecting to %s..." % host)	
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
