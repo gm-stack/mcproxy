@@ -15,7 +15,7 @@ class FowardingBuffer():
 		#stack = traceback.extract_stack()
 		bytes = self.inbuff.read(nbytes)
 		if len(bytes) != nbytes:
-			raise RuntimeError("Sockets betrayed me!")
+			raise socket.error("Sockets betrayed me!")
 		self.lastpack += bytes
 		self.outsock.send(bytes)
 		return bytes
@@ -33,33 +33,38 @@ class FowardingBuffer():
 
 def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	buff = FowardingBuffer(clientsocket, serversocket)
-	
-	while True:
-		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.decoders.keys():
-			packet = mcpackets.decode("c2s", buff, packetid)
-		else:
-			print "unknown packet 0x%2X from client" % packetid
-			continue
-		
-		packet_info(packetid, packet, buff, serverprops)
-		run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+	try:
+		while True:
+			packetid = struct.unpack("!B", buff.read(1))[0]
+			if packetid in mcpackets.decoders.keys():
+				packet = mcpackets.decode("c2s", buff, packetid)
+			else:
+				print "unknown packet 0x%2X from client" % packetid
+				continue
+			
+			packet_info(packetid, packet, buff, serverprops)
+			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+	except socket.error:
+		print "client quit unexpectedly"
+		sys.exit(1)
 
 def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
-
 	buff = FowardingBuffer(serversocket, clientsocket)
-	while True:
-		packetid = struct.unpack("!B", buff.read(1))[0]
-		if packetid in mcpackets.decoders.keys():
-			packet = mcpackets.decode("s2c", buff, packetid)
-		else:
-			print "unknown packet 0x%2X from server" % packetid
-			buff.packet_end()
-			continue
-		
-		packet_info(packetid, packet, buff, serverprops)
-		run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
-
+	try:
+		while True:
+			packetid = struct.unpack("!B", buff.read(1))[0]
+			if packetid in mcpackets.decoders.keys():
+				packet = mcpackets.decode("s2c", buff, packetid)
+			else:
+				print "unknown packet 0x%2X from server" % packetid
+				buff.packet_end()
+				continue
+			
+			packet_info(packetid, packet, buff, serverprops)
+			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+	except socket.error:
+		print "server quit unexpectedly"
+		sys.exit(1)
 
 def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 	if mcpackets.decoders[packetid]['hooks']:
