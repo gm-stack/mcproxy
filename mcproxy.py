@@ -127,8 +127,10 @@ def ishell(serverprops):
 					filter [-number] - remove packet from filtering whitelist
 					""".replace("\t","")
 		elif (commandname == "hook_test"):
-			mcpackets.decoders[mcpackets.name_to_id['time']]['hooks'].append(hooks.timeHook)
-			print "added hook for time"
+			#mcpackets.decoders[mcpackets.name_to_id['time']]['hooks'].append(hooks.timeHook)
+			#mcpackets.decoders[mcpackets.name_to_id['playerposition']]['hooks'].append(hooks.playerPosHook)
+			mcpackets.decoders[mcpackets.name_to_id['playerlook']]['hooks'].append(hooks.playerLookHook)
+			print "added hooks"
 			
 
 #storage class for default server properties

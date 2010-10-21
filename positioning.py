@@ -35,3 +35,47 @@ def compassDirection(playerpos, targetpos):
 		return math.asin(x/distance)
 	else:
 		return math.asin(x/distance)+(math.pi)
+
+
+# -x = north
+# +x = south
+# -z = east
+# +z = west
+
+#			90 rotation
+#			-X axis
+#			^
+#			| North
+#	West	|		East
+# +Z <------+-------> -Z
+#	0 rot	|		180 rot
+#			|
+#			| South
+#			v
+#			+X axis
+#			270 rot
+#
+# rotation = rotation % 360
+# notch is spatially challenged
+#
+
+def sane_angle(playerangle):
+	playerangle = playerangle % 360
+	if (playerangle < 0):
+		playerangle = (360 + playerangle)
+	return playerangle
+
+def humanReadableAngle(playerangle):
+	playerangle = sane_angle(playerangle)
+	angleNames = ["W","NW","N","NE","E","SE","S","SW"]
+	index = int(round(((playerangle)*(len(angleNames)))/360))
+	if index == 8:
+		index = 0
+	closest = angleNames[index]
+	return closest
+		
+		
+		
+		
+		
+		
