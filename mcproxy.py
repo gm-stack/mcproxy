@@ -1,17 +1,16 @@
 #!/usr/bin/env python3.1
-import _thread, socket, struct, time, sys, traceback
-from threading import RLock
-import mcpackets, nbt
+import thread, socket, struct, time, sys, traceback
 from queue import Queue
+from threading import RLock
 from binascii import hexlify
-import hooks
-import gui
+
+import mcpackets, nbt, hooks, gui
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
 		self.inbuff = insocket.makefile('rb', 4096)
 		self.outsock = outsocket
-		self.lastpack = b""
+		self.lastpack = ""
 		
 	def read(self, nbytes):
 		#stack = traceback.extract_stack()
@@ -24,7 +23,7 @@ class FowardingBuffer():
 	
 	def packet_end(self):
 		rpack = self.lastpack
-		self.lastpack = b""
+		self.lastpack = ""
 		truncate = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
