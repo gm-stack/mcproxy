@@ -37,7 +37,7 @@ def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	try:
 		while True:
 			packetid = struct.unpack("!B", buff.read(1))[0]
-			if packetid in list(mcpackets.decoders.keys()):
+			if packetid in mcpackets.decoders.keys():
 				packet = mcpackets.decode("c2s", buff, packetid)
 			else:
 				print("unknown packet 0x%2X from client" % packetid)
@@ -54,7 +54,7 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	try:
 		while True:
 			packetid = struct.unpack("!B", buff.read(1))[0]
-			if packetid in list(mcpackets.decoders.keys()):
+			if packetid in mcpackets.decoders.keys():
 				packet = mcpackets.decode("s2c", buff, packetid)
 			else:
 				print("unknown packet 0x%2X from server" % packetid)
@@ -129,7 +129,11 @@ def ishell(serverprops):
 					""".replace("\t",""))
 		elif (commandname == "hook"):
 			if (len(command) == 1):
-				print("hook list: list hooks\nhook reload: reload hooks\nhook add hookname: add hook\nhook active: list active hooks\nhook remove hookname: remove a hook")
+				print("""hook list: list hooks
+				        hook reload: reload hooks
+                        hook add hookname: add hook
+                        hook active: list active hooks
+                        hook remove hookname: remove a hook""".replace("\t",""))
 			else:
 				subcommand = command[1]
 				if subcommand == "list":
@@ -151,12 +155,12 @@ def ishell(serverprops):
 					else:
 						print("hook %s not found" % hookname)
 				elif subcommand == "active":
-					for decoder in list(mcpackets.decoders.values()):
+					for decoder in mcpackets.decoders.values():
 						for hook in decoder['hooks']:
 							print("%s: %s" % (decoder['name'], hooks.hook_to_name[hook]))
 				elif subcommand == "remove":
 					hookname = command[2]
-					for decoder in list(mcpackets.decoders.values()):
+					for decoder in mcpackets.decoders.values():
 						for hook in decoder['hooks']:
 							if hooks.hook_to_name[hook] == hookname:
 								decoder['hooks'].remove(hook)
@@ -171,10 +175,6 @@ class serverprops():
 	screen = None
 
 if __name__ == "__main__":
-	
-	#bring up shell
-	_thread.start_new_thread(ishell, (serverprops,))
-	
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
@@ -200,6 +200,9 @@ if __name__ == "__main__":
 	#start processing threads	
 	_thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	_thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	
+	#bring up shell
+	_thread.start_new_thread(ishell, (serverprops,))
 	
 	gui.start_gui(serverprops)
 	gui.pygame_event_loop(serverprops)
