@@ -42,11 +42,28 @@ def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
 	print(payload.pretty_tree())
 	
 
+current_inv = {}
+def inventoryTracker(packetid, packet, serverprops, serverqueue, clientqueue):
+	if packet['type']==1:
+		current_inv = packet['items']
+	
 namedhooks = {
 	'timeHook': 		{ 'func': timeHook, 		'packet': 'time'},
 	'playerPosHook': 	{ 'func': playerPosHook,	'packet': 'playerposition'},
 	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
 	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
+	'inventoryTracker':	{ 'func': inventoryTracker,	'packet': 'inventory'},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
+
+
+blocknames = {
+			256: "Iron Spade",
+			257: "Iron Pickaxe",
+			258: "Iron Axe",
+			259: "Flint and Steel"
+			}
+
+
+

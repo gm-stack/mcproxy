@@ -100,13 +100,13 @@ def ishell(serverprops):
 		command = raw_input(">")
 		command = command.split(" ")
 		commandname = command[0]
-		if (commandname == "dumpPackets"):
+		if commandname == "dumpPackets":
 			serverprops.dump_packets = not serverprops.dump_packets
 			print("packet dumping is", ("on" if serverprops.dump_packets else "off"))
-		elif (commandname == "findPlayer"):
+		elif commandname == "findPlayer":
 			serverprops.locfind = not serverprops.locfind
 			print("location reporting is", ("on" if serverprops.locfind else "off"))
-		elif (commandname == "filter"):
+		elif commandname == "filter":
 			if len(command) == 1:
 				serverprops.dumpfilter = not serverprops.dumpfilter
 				print("dumpfilter is", ("on" if serverprops.dumpfilter else "off"))
@@ -120,23 +120,23 @@ def ishell(serverprops):
 							serverprops.filterlist.remove(-1*packtype)
 					except:
 						print("could not understand", cmd)
-		elif (commandname == "inventory"):
+		elif commandname == "inventory":
 			itemtype = 17
 			amount = 1
 			life = 0
 			#conn.send(struct.pack("!BHBH",mcpackets.packet_addtoinv,itemtype,amount,life))
-		elif (commandname == "hexdump"):
+		elif commandname == "hexdump":
 			serverprops.hexdump = not serverprops.hexdump
 			print("hexdump is", ("on" if hexdump else "off"))
-		elif (commandname == "help"):
+		elif commandname == "help":
 			print("""dumpPackets - toggle dumping of packets
 					findPlayer - toggle location finding
 					filter - toggle packet filtering
 					filter [number] - add packet to filtering whitelist
 					filter [-number] - remove packet from filtering whitelist
 					""".replace("\t",""))
-		elif (commandname == "hook"):
-			if (len(command) == 1):
+		elif commandname == "hook":
+			if len(command) == 1:
 				print("""hook list: list hooks
 				        hook reload: reload hooks
                         hook add hookname: add hook
@@ -167,6 +167,30 @@ def ishell(serverprops):
 						for hook in decoder['hooks']:
 							if hooks.hook_to_name[hook] == hookname:
 								decoder['hooks'].remove(hook)
+		elif command_name == 'inventory':
+			if len(command)==1:
+				print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
+			subcommand = command[1]
+			if subcommand == 'add':
+				try:
+					itemid = int(command[2])
+					count  = int(command[3])
+				except:
+					print("unknown slot")
+					continue
+				for slot in hooks.current_inv:
+					if not hooks.current_inv[slot]:
+						hooks.current_inv[slot] = {'itemid': itemid, 'count': count, 'health': 0}
+						packet = {'type':1, 'count':len(hooks.current_inv), 'items':hooks.current_inv}
+						encpacket = mcpackets.encode(mcpackets.name_to_id['inventory'], packet)
+						serverqueue.put(encpacket)
+						clientqueue.put(encpacket)
+						print("added item %i to inventory slot %i" %(itemid, slot))
+						break
+			if subcommand == 'list':
+				for slot in hooks.current_inv:
+					if hooks.current_inv[slot]:
+						print ("%i: %ix%s" % (slot, hooks.current_inv[slot]['count'], hooks.current_inv[slot]['itemid'])
 
 #storage class for default server properties
 class serverprops():
@@ -180,7 +204,12 @@ class serverprops():
 	playerdata_lock = RLock()
 	guistatus = {}
 
-def startNetworkSockets(serverprops):
+if __name__ == "__main__":
+	#====================================================================================#
+	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
+	#====================================================================================#
+		
+	# Client Socket
 	listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	listensocket.bind(('127.0.0.1', 25565))
