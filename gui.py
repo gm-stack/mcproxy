@@ -7,7 +7,7 @@ framerate = 30
 def start_gui(serverprops):
 	root = Tk()
 	
-	serverprops.guistatus['time'] = StringVar()
+	serverprops.guistatus['time'] = StringVar("time")
 	serverprops.guistatus['location'] = StringVar()
 	serverprops.guistatus['angle'] = StringVar()
 	serverprops.guistatus['humanreadable'] = StringVar()	
