@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 import thread, socket, struct, time, sys, traceback
-from queue import Queue
-from threading import RLock
+from Queue import Queue
+from threading import Thread, RLock
 from binascii import hexlify
 
 import mcpackets, nbt, hooks, gui
@@ -203,11 +203,11 @@ if __name__ == "__main__":
 	serverqueue = Queue()
 	
 	#start processing threads	
-	_thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
-	_thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	
 	#bring up shell
-	_thread.start_new_thread(ishell, (serverprops,))
+	thread.start_new_thread(ishell, (serverprops,))
 	
 	gui.start_gui(serverprops)
 	addHook('timeHook')
