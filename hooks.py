@@ -14,6 +14,7 @@ def timeHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	
 	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['time'] = (mchour,mcminute)
+	serverprops.guistatus['time'].set("%i:%.2i" % serverprops.playerdata['time'])
 	serverprops.playerdata_lock.release()
 	#print("The time is: %i:%.2i" % (mchour,mcminute))
 
@@ -21,12 +22,15 @@ def playerPosHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	#print("player location x:%f y:%f z:%f" % (packet['x'], packet['y'], packet['z']))
 	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
+	serverprops.guistatus['location'].set("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
 	serverprops.playerdata_lock.release()
 
 def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	#print("player is pointing %s, vertical angle %i" % (positioning.humanReadableAngle(packet['rotation']), packet['pitch']))
 	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
+	serverprops.guistatus['angle'].set("Rotation: %i\nPitch: %i" % serverprops.playerdata['angle'])
+	serverprops.guistatus['humanreadable'].set("Direction: %s" % positioning.humanReadableAngle(packet['rotation']))
 	serverprops.playerdata_lock.release()
 
 def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):

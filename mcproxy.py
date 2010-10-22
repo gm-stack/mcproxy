@@ -4,7 +4,7 @@ from Queue import Queue
 from threading import Thread, RLock
 from binascii import hexlify
 
-import mcpackets, nbt, hooks, gui
+import mcpackets, nbt, hooks
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -178,21 +178,14 @@ class serverprops():
 	screen = None
 	playerdata = {}
 	playerdata_lock = RLock()
+	guistatus = {}
 
-if __name__ == "__main__":
-	#====================================================================================#
-	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
-	#====================================================================================#
-		
-	# Client Socket
+def startNetworkSockets(serverprops):
 	listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	listensocket.bind(('127.0.0.1', 25565))
 	listensocket.listen(1)
 	print("Waiting for connection...")
-	
-	#bring up shell
-	thread.start_new_thread(ishell, (serverprops,))
 	
 	clientsocket, addr = listensocket.accept()
 	print("Connection accepted from %s" % str(addr))
@@ -209,12 +202,18 @@ if __name__ == "__main__":
 	#start processing threads	
 	thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+
+
+if __name__ == "__main__":
+	#====================================================================================#
+	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
+	#====================================================================================#
 	
-	
-	gui.start_gui(serverprops)
+	thread.start_new_thread(startNetworkSockets,(serverprops,))	
+	thread.start_new_thread(ishell, (serverprops,))
+
 	addHook('timeHook')
 	addHook('playerPosHook')
 	addHook('playerLookHook')
-	gui.pygame_event_loop(serverprops)
-	while True:
-		time.sleep(1000)
+	import gui
+	gui.start_gui(serverprops)
