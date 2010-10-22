@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.1
 import _thread, socket, struct, time, sys, traceback
+from threading import RLock
 import mcpackets, nbt
 from queue import Queue
 from binascii import hexlify
@@ -87,6 +88,14 @@ def packet_info(packetid, packet, buff, serverprops):
 		else:
 			buff.packet_end()
 
+def addHook(hookname):
+	if hookname in hooks.namedhooks:
+		packet = hooks.namedhooks[hookname]['packet']
+		hookclass = hooks.namedhooks[hookname]['func']
+		mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
+	else:
+		print("hook %s not found" % hookname)
+
 def ishell(serverprops):
 	while True:
 		command = input(">")
@@ -148,12 +157,7 @@ def ishell(serverprops):
 						print("reload failed")
 				elif subcommand == "add":
 					hookname = command[2]
-					if hookname in hooks.namedhooks:
-						packet = hooks.namedhooks[hookname]['packet']
-						hookclass = hooks.namedhooks[hookname]['func']
-						mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
-					else:
-						print("hook %s not found" % hookname)
+					addHook(hookname)
 				elif subcommand == "active":
 					for decoder in mcpackets.decoders.values():
 						for hook in decoder['hooks']:
@@ -173,6 +177,8 @@ class serverprops():
 	locfind = False
 	hexdump = False
 	screen = None
+	playerdata = {}
+	playerdata_lock = RLock()
 
 if __name__ == "__main__":
 	#====================================================================================#
@@ -205,6 +211,9 @@ if __name__ == "__main__":
 	_thread.start_new_thread(ishell, (serverprops,))
 	
 	gui.start_gui(serverprops)
+	addHook('timeHook')
+	addHook('playerPosHook')
+	addHook('playerLookHook')
 	gui.pygame_event_loop(serverprops)
 	while True:
 		time.sleep(1000)
