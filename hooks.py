@@ -29,10 +29,20 @@ def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
 	serverprops.playerdata_lock.release()
 
+def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
+	from StringIO import StringIO
+	from nbt import NBTFile
+	from gzip import GzipFile
+	print("@x:%i,y:%i,z%i"%(packet['x'],packet['y'],packet['z']))
+	payload = NBTFile(buffer=GzipFile(fileobj=StringIO(packet['payload'])))
+	print(payload.pretty_tree())
+	
+
 namedhooks = {
 	'timeHook': 		{ 'func': timeHook, 		'packet': 'time'},
 	'playerPosHook': 	{ 'func': playerPosHook,	'packet': 'playerposition'},
 	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
+	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])

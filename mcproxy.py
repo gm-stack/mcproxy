@@ -28,7 +28,7 @@ class FowardingBuffer():
 		if len(rpack) > 32:
 			rpack = rpack[:32]
 			truncate = True
-		rpack = " ".join([("%.2X " % byte) for byte in rpack])
+		rpack = " ".join([hexlify(byte) for byte in rpack])
 		if truncate: rpack += " ..."
 		return rpack
 
@@ -70,13 +70,13 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 	if mcpackets.decoders[packetid]['hooks']:
 		for hook in mcpackets.decoders[packetid]['hooks']:
-			try:
-				hook(packetid,packet,serverprops, serverqueue, clientqueue)
-			except:
-				execption = traceback.extract_stack()[-1]
-				print("Hook crashed: File:%s, line %i in %s" % (execption[0], execption[1], execption[2]))
-				mcpackets.decoders[packetid]['hooks'].remove(hook)
-				#FIXME: make this report what happened
+			#try:
+			hook(packetid,packet,serverprops, serverqueue, clientqueue)
+			#except:
+			#	execption = traceback.print_stack()
+			#	#print("Hook crashed: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
+			#	mcpackets.decoders[packetid]['hooks'].remove(hook)
+			#	#FIXME: make this report what happened
 
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
@@ -97,7 +97,7 @@ def addHook(hookname):
 
 def ishell(serverprops):
 	while True:
-		command = input(">")
+		command = raw_input(">")
 		command = command.split(" ")
 		commandname = command[0]
 		if (commandname == "dumpPackets"):
@@ -190,6 +190,10 @@ if __name__ == "__main__":
 	listensocket.bind(('127.0.0.1', 25565))
 	listensocket.listen(1)
 	print("Waiting for connection...")
+	
+	#bring up shell
+	thread.start_new_thread(ishell, (serverprops,))
+	
 	clientsocket, addr = listensocket.accept()
 	print("Connection accepted from %s" % str(addr))
 	clientqueue = Queue()
@@ -206,8 +210,6 @@ if __name__ == "__main__":
 	thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 	
-	#bring up shell
-	thread.start_new_thread(ishell, (serverprops,))
 	
 	gui.start_gui(serverprops)
 	addHook('timeHook')

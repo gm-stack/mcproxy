@@ -19,13 +19,13 @@ def pygame_event_loop(serverprops):
 		
 		black = 0, 0, 0
 		serverprops.screen.fill(black)
-		text = font.render("x: %f, y: %f, z: %f" % serverprops.playerdata['location'], True, (255,255,255), (0,0,0))
-		textRect = text.getRect()
+		#@text = font.render("x: %f, y: %f, z: %f" % serverprops.playerdata['location'], True, (255,255,255), (0,0,0))
+		#@textRect = text.getRect()
 		
-		textRect.centerx = screen.get_rect().centerx
-		textRect.centery = screen.get_rect().centery
+		#textRect.centerx = screen.get_rect().centerx
+		#textRect.centery = screen.get_rect().centery
 		
-		screen.blit(text, textRect)
+		#screen.blit(text, textRect)
 		
 		pygame.display.flip()
 
