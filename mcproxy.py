@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.1
+#!/usr/bin/env python2.7
 import thread, socket, struct, time, sys, traceback
 from queue import Queue
 from threading import RLock
