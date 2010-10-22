@@ -9,7 +9,7 @@ import mcpackets, nbt, hooks
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
 		self.inbuff = insocket.makefile('rb', 4096)
-		self.outsock = outsocket
+		self.outsock = outsocket.makefile('rb', 4096)
 		self.lastpack = ""
 		
 	def read(self, nbytes):
@@ -18,9 +18,12 @@ class FowardingBuffer():
 		if len(bytes) != nbytes:
 			raise socket.error("Sockets betrayed me!")
 		self.lastpack += bytes
-		self.outsock.send(bytes) #FIXME: bytes should be type bytes
+		self.outsock.write(bytes) #FIXME: bytes should be type bytes
 		return bytes
 	
+	def write(self, bytes):
+		self.outsock.write(bytes)
+		
 	def packet_end(self):
 		rpack = self.lastpack
 		self.lastpack = ""
@@ -45,9 +48,16 @@ def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 			
 			packet_info(packetid, packet, buff, serverprops)
 			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+			
+			#send all items in the outgoing queue
+			while serverqueue.not_empty:
+				task = clientqueue.get()
+				serversocket.send(task)
+				serverqueue.task_done()
+				
 	except socket.error:
 		print("client quit unexpectedly")
-		sys.exit(1)
+		return
 
 def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 	buff = FowardingBuffer(serversocket, clientsocket)
@@ -63,9 +73,16 @@ def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
 			
 			packet_info(packetid, packet, buff, serverprops)
 			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+			
+			#send all items in the outgoing queue
+			while clientqueue.not_empty:
+				task = clientqueue.get()
+				clientsocket.send(task)
+				clientqueue.task_done()
+				
 	except socket.error:
 		print("server quit unexpectedly")
-		sys.exit(1)
+		return
 
 def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 	if mcpackets.decoders[packetid]['hooks']:
