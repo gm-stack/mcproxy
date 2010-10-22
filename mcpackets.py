@@ -1,7 +1,8 @@
 import struct
 import nbt
 from collections import OrderedDict as od
-from stringio import StringIO
+from StringIO import StringIO
+from hooks import inventoryTracker
 # thanks to http://www.wiki.vg/minecraft/alpha/protocol
 
 def decodeSHandshake(buffer):
@@ -326,7 +327,7 @@ decoders = {
 			'hooks': [],
 			'format': [od([('time', nbt.TAG_Long)])]},
 	
-	0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], hooks': [inventoryTracker]},
+	0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks': [inventoryTracker]},
 	
 	0x06: {	'name':'spawnposition', 
 			'decoders': [decodeSpawnPosition],
@@ -363,8 +364,6 @@ decoders = {
 			'format': [od([	('itemtype',nbt.TAG_Short),
 							('amount',	nbt.TAG_Byte),
 							('life',	nbt.TAG_Short),])] },
-	}
-},
 	
 	0x12: {	'name':'armanim',			'decoders': [decodeAnimateArm],			'hooks': []},
 	

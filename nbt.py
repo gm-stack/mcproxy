@@ -73,7 +73,7 @@ class TAG_ByteU(_TAG_Numeric):
 class TAG_Bool(_TAG_Numeric):
 	id = TAG_BYTE
 	def __init__(self, value=None, name=None, buffer=None):
-		super(TAG_ByteU, self).__init__(">?", 1, buffer, value, name)
+		super(TAG_Bool, self).__init__(">?", 1, buffer, value, name)
 		
 class TAG_Short(_TAG_Numeric):
 	id = TAG_SHORT

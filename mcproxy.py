@@ -9,7 +9,7 @@ import mcpackets, nbt, hooks
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
 		self.inbuff = insocket.makefile('rb', 4096)
-		self.outsock = outsocket.makefile('rb', 4096)
+		self.outsock = outsocket
 		self.lastpack = ""
 		
 	def read(self, nbytes):
@@ -18,11 +18,11 @@ class FowardingBuffer():
 		if len(bytes) != nbytes:
 			raise socket.error("Sockets betrayed me!")
 		self.lastpack += bytes
-		self.outsock.write(bytes) #FIXME: bytes should be type bytes
+		self.outsock.send(bytes) #FIXME: bytes should be type bytes
 		return bytes
 	
 	def write(self, bytes):
-		self.outsock.write(bytes)
+		self.outsock.send(bytes)
 		
 	def packet_end(self):
 		rpack = self.lastpack
@@ -35,64 +35,41 @@ class FowardingBuffer():
 		if truncate: rpack += " ..."
 		return rpack
 
-def c2s(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
-	buff = FowardingBuffer(clientsocket, serversocket)
+def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
+	buff = FowardingBuffer(insocket, outsocket)
 	try:
 		while True:
 			packetid = struct.unpack("!B", buff.read(1))[0]
 			if packetid in mcpackets.decoders.keys():
-				packet = mcpackets.decode("c2s", buff, packetid)
+				packet = mcpackets.decode(dir, buff, packetid)
 			else:
-				print("unknown packet 0x%2X from client" % packetid)
-				continue
-			
-			packet_info(packetid, packet, buff, serverprops)
-			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
-			
-			#send all items in the outgoing queue
-			while serverqueue.not_empty:
-				task = clientqueue.get()
-				serversocket.send(task)
-				serverqueue.task_done()
-				
-	except socket.error:
-		print("client quit unexpectedly")
-		return
-
-def s2c(clientsocket,serversocket, clientqueue, serverqueue, serverprops):
-	buff = FowardingBuffer(serversocket, clientsocket)
-	try:
-		while True:
-			packetid = struct.unpack("!B", buff.read(1))[0]
-			if packetid in mcpackets.decoders.keys():
-				packet = mcpackets.decode("s2c", buff, packetid)
-			else:
-				print("unknown packet 0x%2X from server" % packetid)
+				print("unknown packet 0x%2X from" % packetid, {'c2s':'client', 's2c':'server'}[dir])
 				buff.packet_end()
 				continue
 			
 			packet_info(packetid, packet, buff, serverprops)
-			run_hooks(packetid, packet, serverprops, serverqueue, clientqueue)
+			run_hooks(packetid, packet, svrprops, outqueue, inqueue)
 			
 			#send all items in the outgoing queue
-			while clientqueue.not_empty:
-				task = clientqueue.get()
-				clientsocket.send(task)
-				clientqueue.task_done()
+			inqueue = Queue()
+			while not inqueue.empty():
+				task = outqueue.get()
+				buff.write(task)
+				outqueue.task_done()
 				
 	except socket.error:
-		print("server quit unexpectedly")
+		print( dir, "connection quit unexpectedly")
 		return
 
 def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 	if mcpackets.decoders[packetid]['hooks']:
 		for hook in mcpackets.decoders[packetid]['hooks']:
-			#try:
-			hook(packetid,packet,serverprops, serverqueue, clientqueue)
-			#except:
-			#	execption = traceback.print_stack()
-			#	#print("Hook crashed: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
-			#	mcpackets.decoders[packetid]['hooks'].remove(hook)
+			try:
+				hook(packetid,packet,serverprops, serverqueue, clientqueue)
+			except:
+				#execption = traceback.print_stack()
+				print("Hook crashed!") #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
+				mcpackets.decoders[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
 
 def packet_info(packetid, packet, buff, serverprops):
@@ -207,7 +184,7 @@ def ishell(serverprops):
 			if subcommand == 'list':
 				for slot in hooks.current_inv:
 					if hooks.current_inv[slot]:
-						print ("%i: %ix%s" % (slot, hooks.current_inv[slot]['count'], hooks.current_inv[slot]['itemid'])
+						print ("%i: %ix%s" % (slot, hooks.current_inv[slot]['count'], hooks.current_inv[slot]['itemid']))
 
 #storage class for default server properties
 class serverprops():
@@ -221,7 +198,7 @@ class serverprops():
 	playerdata_lock = RLock()
 	guistatus = {}
 
-if __name__ == "__main__":
+def startNetworkSockets(serverprops):
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
@@ -246,8 +223,11 @@ if __name__ == "__main__":
 	serverqueue = Queue()
 	
 	#start processing threads	
-	thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
-	thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	
+	thread.start_new_thread(sock_foward,("c2s", clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	thread.start_new_thread(sock_foward,("s2c", serversocket, clientsocket, serverqueue, clientqueue, serverprops))
+	#thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	#thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
 
 
 if __name__ == "__main__":
