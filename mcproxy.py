@@ -44,6 +44,8 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 	buff = FowardingBuffer(insocket, outsocket)
 	try:
 		while True:
+			#decode packet
+			buff.packet_start()
 			packetid = struct.unpack("!B", buff.read(1))[0]
 			if packetid in mcpackets.decoders.keys():
 				packet = mcpackets.decode(dir, buff, packetid)
@@ -51,9 +53,9 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				print("unknown packet 0x%2X from" % packetid, {'c2s':'client', 's2c':'server'}[dir])
 				buff.packet_end()
 				continue
-			
 			packetbytes = buff.packet_end()
-			packet_info(packetid, packet, packetbytes, serverprops)
+			
+			packet_info(packetid, packet, buff, serverprops)
 			modpacket = run_hooks(packetid, packet, svrprops, outqueue, inqueue)
 			if modpacket == None: # if run_hooks returns none, the packet was not modified
 				buff.write(packetbytes)
@@ -87,12 +89,12 @@ def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
 			#	#FIXME: make this report what happened
 	return ret
 
-def packet_info(packetid, packet, packetbytes, serverprops):
+def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
 			print(packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet)
 		if serverprops.hexdump:
-			print(packetbytes)
+			print(buff.render_last_packet())
 
 def addHook(hookname):
 	if hookname in hooks.namedhooks:
