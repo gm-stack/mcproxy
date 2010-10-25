@@ -28,7 +28,7 @@ class FowardingBuffer():
 		self.lastpack = ""
 		
 	def packet_end(self):
-		return lastpack
+		return self.lastpack
 		
 	def render_last_packet(self):
 		rpack = self.lastpack
@@ -69,7 +69,8 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				buff.write(task)
 				outqueue.task_done()
 				
-	except socket.error:
+	except socket.error, e:
+		print e
 		print( dir, "connection quit unexpectedly")
 		return
 
