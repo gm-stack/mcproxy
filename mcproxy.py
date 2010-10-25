@@ -67,10 +67,8 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 			
 			#send all items in the outgoing queue
 			while not outqueue.empty():
-				print dir, " trying to send"
 				task = outqueue.get()
 				buff.write(task)
-				print "sent task"
 				outqueue.task_done()
 				
 	except socket.error, e:
