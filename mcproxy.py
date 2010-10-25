@@ -95,7 +95,10 @@ def run_hooks(packetid, packet, serverprops):
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
-			print(packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet)
+			if packet['dir'] == 's2c':
+				print("s-->c", mcpackets.decoders[packetid]['name'], ":", packet)
+			else:
+				print("c<--s", mcpackets.decoders[packetid]['name'], ":", packet)
 		if serverprops.hexdump:
 			print(buff.render_last_packet())
 
