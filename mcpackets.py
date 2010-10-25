@@ -426,7 +426,7 @@ def decode(direction, buffer, packetID):
 	
 	#decode using specialized decoder
 	else:
-		#use pre-made encoder
+		#use pre-made decoder
 		decoder = decoders[packetID]['decoders'][{"s2c":0,"c2s":-1}[direction]]
 		packet = decoder(buffer)
 		
@@ -440,6 +440,7 @@ def encode(direction, packetID, packet):
 	
 	#encode by format description
 	if packet_desc['format']:
+		print "has format"
 		format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
 		#render packet to buffer
 		for field in format:
@@ -453,5 +454,8 @@ def encode(direction, packetID, packet):
 	#i am error
 	else:
 		print("unable to render packetID", packetID)
-		
-	return outbuff.read()
+	
+	packet = outbuff.read()
+	print packet
+	print "length %i" % len(packet)
+	return packet

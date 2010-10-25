@@ -66,10 +66,11 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				#packet_info(packetid, modpacket, buff, serverprops)
 			
 			#send all items in the outgoing queue
-			inqueue = Queue()
-			while not inqueue.empty():
+			while not outqueue.empty():
+				print dir, " trying to send"
 				task = outqueue.get()
 				buff.write(task)
+				print "sent task"
 				outqueue.task_done()
 				
 	except socket.error, e:
@@ -181,8 +182,14 @@ def ishell(serverprops):
 							if hooks.hook_to_name[hook] == hookname:
 								decoder['hooks'].remove(hook)
 		elif commandname == 'addtoinv':
-			packet = { 'itemtype': 4, 'amount': 64, 'life': 0}
+			packet = { 'itemtype': 4, 'amount': 1, 'life': 0}
 			serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
+			print "packet sent"
+		elif commandname == 'testchat':
+			packet = { 'message': 'lol'}
+			encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['chat'],packet)
+			#serverprops.comms.clientqueue.put(encpacket)
+			print "packet sent"
 		elif commandname == 'inventory':
 			if len(command)==1:
 				print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
