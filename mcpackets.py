@@ -588,6 +588,8 @@ def decode(direction, buffer, packetID):
 		packet = decoder(buffer)
 		
 	packet['dir'] = direction
+	packet['packetID'] = packetID
+	
 	return packet
 
 def encode(direction, packetID, packet):
