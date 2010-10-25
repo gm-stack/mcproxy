@@ -4,7 +4,7 @@ from Queue import Queue
 from threading import Thread, RLock
 from binascii import hexlify
 
-import mcpackets, nbt, hooks
+import mcpackets, nbt, hooks, items
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -182,9 +182,26 @@ def ishell(serverprops):
 							if hooks.hook_to_name[hook] == hookname:
 								decoder['hooks'].remove(hook)
 		elif commandname == 'addtoinv':
-			packet = { 'itemtype': 4, 'amount': 1, 'life': 0}
-			serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
-			print "packet sent"
+			if len(command) == 1:
+				print "addtoinv [itemID|itemName] [quantity]"
+			if (len(command) == 2) or (len(command) == 3):
+				if len(command) == 2:
+					amount = 1
+				else:
+					amount = int(command[2])
+				haveitem = 0
+				try:
+					itemtype = int(command[1])
+					haveitem = 1
+				except ValueError:
+					if command[1] in items.id2underName:
+						itemtype = items.id2underName[command[1]]
+						haveitem = 1
+					else:
+						print "Unknown item"
+				if haveitem:
+					packet = { 'itemtype': itemtype, 'amount': amount, 'life': 0}
+					serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
 		elif commandname == 'testchat':
 			packet = { 'message': 'lol'}
 			encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['chat'],packet)
