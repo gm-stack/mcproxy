@@ -33,6 +33,10 @@ def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	serverprops.guistatus['humanreadable'].set("Direction: %s" % positioning.humanReadableAngle(packet['rotation']))
 	serverprops.playerdata_lock.release()
 
+def timeChangeHook(packetid, packet, serverprops, serverqueue, clientqueue):
+	packet['time'] = 9000
+	return packet
+
 def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
 	from StringIO import StringIO
 	from nbt import NBTFile

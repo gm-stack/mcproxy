@@ -18,7 +18,7 @@ class FowardingBuffer():
 		if len(bytes) != nbytes:
 			raise socket.error("Sockets betrayed me!")
 		self.lastpack += bytes
-		self.outsock.send(bytes) #FIXME: bytes should be type bytes
+		#self.outsock.send(bytes)
 		return bytes
 	
 	def write(self, bytes):
@@ -47,8 +47,13 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				buff.packet_end()
 				continue
 			
-			packet_info(packetid, packet, buff, serverprops)
-			run_hooks(packetid, packet, svrprops, outqueue, inqueue)
+			packetbytes = buff.packet_end()
+			packet_info(packetid, packet, packetbytes, serverprops)
+			modpacket = run_hooks(packetid, packet, svrprops, outqueue, inqueue)
+			if modpacket == None: # if run_hooks returns none, the packet was not modified
+				buff.write(packetbytes)
+			else:
+				buff.write(mcpackets.encode(dir,packetid,modpacket))
 			
 			#send all items in the outgoing queue
 			inqueue = Queue()
@@ -62,24 +67,27 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 		return
 
 def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
+	ret = None
 	if mcpackets.decoders[packetid]['hooks']:
 		for hook in mcpackets.decoders[packetid]['hooks']:
 			try:
-				hook(packetid,packet,serverprops, serverqueue, clientqueue)
+				retpacket = hook(packetid,packet,serverprops, serverqueue, clientqueue)
+				if retpacket != None:
+					packet = retpacket
+					ret = packet
 			except:
 				#execption = traceback.print_stack()
 				print("Hook crashed!") #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
 				mcpackets.decoders[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
+	return ret
 
-def packet_info(packetid, packet, buff, serverprops):
+def packet_info(packetid, packet, packetbytes, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
 			print(packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet)
 		if serverprops.hexdump:
-			print(buff.packet_end())
-		else:
-			buff.packet_end()
+			print(packetbytes)
 
 def addHook(hookname):
 	if hookname in hooks.namedhooks:
@@ -215,7 +223,8 @@ def startNetworkSockets(serverprops):
 	clientqueue = Queue()
 	
 	# Server Socket
-	host = '58.96.109.73'
+	host = '120.146.252.81'
+	# make it pick one from: http://servers.minecraftforum.net/
 	port = 25565
 	print("Connecting to %s..." % host)	
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -348,7 +348,7 @@ decoders = {
 	
 	0x0D: {	'name':'playermovelook',		'decoders': [decodeSPlayerMoveAndLook, decodeCPlayerMoveAndLook],	'hooks': []},
 	
-	# world interraction packets
+	# world interaction packets
 	
 	0x0E: {	'name':'blockdig',			'decoders': [decodeBlockDig],			'hooks': []},
 	
@@ -422,7 +422,7 @@ def decode(direction, buffer, packetID):
 		#render to stream
 		for field in format:
 			packet[field] = format[field](buffer=buffer).value
-		print packet
+		#print packet
 	
 	#decode using specialized decoder
 	else:
