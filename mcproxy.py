@@ -16,7 +16,7 @@ class FowardingBuffer():
 		#stack = traceback.extract_stack()
 		bytes = self.inbuff.read(nbytes)
 		if len(bytes) != nbytes:
-			raise socket.error("Sockets betrayed me!")
+			raise socket.error("Socket has collapsed, unknown error")
 		self.lastpack += bytes
 		#self.outsock.send(bytes)
 		return bytes
@@ -40,7 +40,7 @@ class FowardingBuffer():
 		if truncate: rpack += " ..."
 		return rpack
 
-def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
+def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
 	buff = FowardingBuffer(insocket, outsocket)
 	try:
 		while True:
@@ -55,7 +55,7 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				continue
 			packetbytes = buff.packet_end()
 			
-			modpacket = run_hooks(packetid, packet, svrprops, outqueue, inqueue)
+			modpacket = run_hooks(packetid, packet, serverprops)
 			if modpacket == None: # if run_hooks returns none, the packet was not modified
 				packet_info(packetid, packet, buff, serverprops)
 				buff.write(packetbytes)
@@ -72,22 +72,22 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				outqueue.task_done()
 				
 	except socket.error, e:
+		print( dir, "connection quit unexpectedly:")
 		print e
-		print( dir, "connection quit unexpectedly")
 		return
 
-def run_hooks(packetid, packet, serverprops, serverqueue, clientqueue):
+def run_hooks(packetid, packet, serverprops):
 	ret = None
 	if mcpackets.decoders[packetid]['hooks']:
 		for hook in mcpackets.decoders[packetid]['hooks']:
 			try:
-				retpacket = hook(packetid,packet,serverprops, serverqueue, clientqueue)
+				retpacket = hook(packetid,packet,serverprops)
 				if retpacket != None:
 					packet = retpacket
 					ret = packet
 			except:
 				#execption = traceback.print_stack()
-				print("Hook crashed!") #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
+				print('Hook "%s" crashed!' % hooks.hook_to_name[hook]) #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
 				mcpackets.decoders[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
 	return ret
@@ -244,43 +244,48 @@ class serverprops():
 	playerdata_lock = RLock()
 	guistatus = {}
 	class comms():
-		clientsocket = None
-		serversocket = None
 		clientqueue = None
 		serverqueue = None
-
+		
 def startNetworkSockets(serverprops):
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
 		
-	# Client Socket
-	listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	listensocket.bind(('127.0.0.1', 25565))
-	listensocket.listen(1)
-	print("Waiting for connection...")
-	
-	clientsocket, addr = listensocket.accept()
-	serverprops.comms.clientsocket = clientsocket
-	print("Connection accepted from %s" % str(addr))
-	clientqueue = serverprops.comms.clientqueue = Queue()
-
-	# Server Socket
-	host = '120.146.252.81'
-	# make it pick one from: http://servers.minecraftforum.net/
-	port = 25565
-	print("Connecting to %s..." % host)    
-	serversocket = serverprops.comms.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	serversocket.connect((host,port))
-	serverqueue = serverprops.comms.serverqueue = Queue()
-	
-	#start processing threads	
-	
-	thread.start_new_thread(sock_foward,("c2s", clientsocket, serversocket, clientqueue, serverqueue, serverprops))
-	thread.start_new_thread(sock_foward,("s2c", serversocket, clientsocket, serverqueue, clientqueue, serverprops))
-	#thread.start_new_thread(c2s,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
-	#thread.start_new_thread(s2c,(clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+	while True:
+		# Client Socket
+		listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		listensocket.bind(('127.0.0.1', 25565))
+		listensocket.listen(1)
+		print("Waiting for connection...")
+		
+		clientsocket, addr = listensocket.accept()
+		print("Connection accepted from %s" % str(addr))
+		serverprops.comms.clientqueue = Queue()
+		
+		# Server Socket
+		host = '120.146.252.81'
+		# make it pick one from: http://servers.minecraftforum.net/
+		port = 25565
+		print("Connecting to %s..." % host)	
+		serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		serversocket.connect((host,port))
+		serverprops.comms.serverqueue = Queue()
+		
+		#start processing threads	
+		
+		serverthread = Thread(target=sock_foward, name="Thread-c2s", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
+		serverthread.start()
+		clientthread = Thread(target=sock_foward, name="Thread-s2c", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
+		clientthread.start()
+		
+		#wait for something bad to happen :(
+		serverthread.join()
+		clientthread.join()
+		
+		#thread.start_new_thread(sock_foward,("c2s", clientsocket, serversocket, clientqueue, serverqueue, serverprops))
+		#thread.start_new_thread(sock_foward,("s2c", serversocket, clientsocket, serverqueue, clientqueue, serverprops))
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@
 
 import positioning
 
-def timeHook(packetid, packet, serverprops, serverqueue, clientqueue):
+def timeHook(packetid, packet, serverprops):
 	time = packet['time']
 	mchour = int(((time + 6000) % 24000) / 1000)
 	mcminute = int(((time % 1000) / 1000.0) * 60.0)
@@ -18,14 +18,14 @@ def timeHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	serverprops.playerdata_lock.release()
 	#print("The time is: %i:%.2i" % (mchour,mcminute))
 
-def playerPosHook(packetid, packet, serverprops, serverqueue, clientqueue):
+def playerPosHook(packetid, packet, serverprops):
 	#print("player location x:%f y:%f z:%f" % (packet['x'], packet['y'], packet['z']))
 	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
 	serverprops.guistatus['location'].set("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
 	serverprops.playerdata_lock.release()
 
-def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
+def playerLookHook(packetid, packet, serverprops):
 	#print("player is pointing %s, vertical angle %i" % (positioning.humanReadableAngle(packet['rotation']), packet['pitch']))
 	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
@@ -36,11 +36,11 @@ def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	serverprops.guistatus['humanreadable'].set("Direction: %s" % positioning.humanReadableAngle(packet['rotation']))
 	serverprops.playerdata_lock.release()
 
-def timeChangeHook(packetid, packet, serverprops, serverqueue, clientqueue):
+def timeChangeHook(packetid, packet, serverprops):
 	packet['time'] = 9000
 	return packet
 
-def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
+def viewCustomEntities(packetid, packet, serverprops):
 	from StringIO import StringIO
 	from nbt import NBTFile
 	from gzip import GzipFile
@@ -50,7 +50,7 @@ def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
 	
 
 current_inv = {}
-def inventoryTracker(packetid, packet, serverprops, serverqueue, clientqueue):
+def inventoryTracker(packetid, packet, serverprops):
 	if packet['type']==1:
 		current_inv = packet['items']
 	
