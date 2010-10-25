@@ -299,7 +299,9 @@ def decodeDisconnect(buffer):
 
 decoders = {
 	# basic packets
-	0x00: { 'name':'keepalive', 'decoders': [lambda buff: {}], 'hooks': []},  
+	0x00: { 'name':'keepalive', 
+			'decoders': [lambda buff: {}], 
+			'hooks': []},  
 	
 	0x01: { 'name':'login',
 			'decoders': [decodeSLogin, decodeCLogin],
@@ -332,82 +334,237 @@ decoders = {
 	0x06: {	'name':'spawnposition', 
 			'decoders': [decodeSpawnPosition],
 			'hooks': [],
-			'format': [od([	('x', nbt.TAG_Int),
-							('y', nbt.TAG_Int),
-							('z', nbt.TAG_Int)	])]	},
+			'format': [od([	('x',				nbt.TAG_Int),
+							('y', 				nbt.TAG_Int),
+							('z', 				nbt.TAG_Int)	])]	},
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
 			'decoders': [decodeFlying], 
 			'hooks': [], 
-			'format': [od([	('flying', nbt.TAG_Bool), ])] },
+			'format': [od([	('flying', 			nbt.TAG_Bool), ])] },
 	
-	0x0B: {	'name':'playerposition',		'decoders': [decodePlayerPosition],		'hooks': []},
-	
-	0x0C: {	'name':'playerlook',			'decoders': [decodePlayerLook],			'hooks': []},
-	
-	0x0D: {	'name':'playermovelook',		'decoders': [decodeSPlayerMoveAndLook, decodeCPlayerMoveAndLook],	'hooks': []},
-	
+	0x0B: {	'name':'playerposition',
+			'decoders': [decodePlayerPosition],	
+			'hooks': [],
+			'format': [od([	('x',				nbt.TAG_Double),
+							('y',				nbt.TAG_Double),
+							('stance',			nbt.TAG_Double),
+							('z',				nbt.TAG_Double),
+							('flying',			nbt.TAG_Bool),])] },
+						
+	0x0C: {	'name':'playerlook',
+			'decoders': [decodePlayerLook],	
+			'hooks': [],
+			'format': [od([	('rotation',		nbt.TAG_Float),
+							('pitch',			nbt.TAG_Float),
+							('flying',			nbt.TAG_Bool),])] },
+						
+	0x0D: {	'name':'playermovelook',
+			'decoders': [decodeSPlayerMoveAndLook, decodeCPlayerMoveAndLook],
+			'hooks': [],
+			'format': [	od([	('x',			nbt.TAG_Double),
+								('y',			nbt.TAG_Double),
+								('stance',		nbt.TAG_Double),
+								('z',			nbt.TAG_Double),
+								('rotation',	nbt.TAG_Float),
+								('pitch',		nbt.TAG_Float),
+								('flying',		nbt.TAG_Bool),]),
+								
+						od([	('x',			nbt.TAG_Double),
+								('stance',		nbt.TAG_Double),
+								('y',			nbt.TAG_Double),
+								('z',			nbt.TAG_Double),
+								('rotation',	nbt.TAG_Float),
+								('pitch',		nbt.TAG_Float),
+								('flying',		nbt.TAG_Byte),])] },
+								
 	# world interaction packets
 	
-	0x0E: {	'name':'blockdig',			'decoders': [decodeBlockDig],			'hooks': []},
-	
-	0x0F: {	'name':'blockplace',			'decoders': [decodeBlockPlace],			'hooks': []},
-	
+	0x0E: {	'name':'blockdig',
+			'decoders': [decodeBlockDig],
+			'hooks': [],
+			'format': [od([	('status',			nbt.TAG_Byte),
+							('x',				nbt.TAG_Int),
+							('y',				nbt.TAG_Byte),
+							('z',				nbt.TAG_Int),
+							('direction',		nbt.TAG_Byte),])] },
+					
+						
+	0x0F: {	'name':'blockplace',
+			'decoders': [decodeBlockPlace],		
+			'hooks': [],
+			'format': [od([	('type',			nbt.TAG_Short),
+							('x',				nbt.TAG_Int),
+							('y',				nbt.TAG_Byte),
+							('z',				nbt.TAG_Int),
+							('direction',		nbt.TAG_Byte),])] },
+					
 	#more playerstate
 	
-	0x10: {	'name':'blockitemswitch',	'decoders': [decodeItemSwitch],	 		'hooks': []},
+	0x10: {	'name':'blockitemswitch',
+			'decoders': [decodeItemSwitch],
+	 		'hooks': [],
+	 		'format': [od([	('entityID',		nbt.TAG_Int),
+							('itemID',			nbt.TAG_Short),])] },
 	
 	0x11: {	'name':'addtoinv',
 			'decoders': [decodeSAddToInventory],
 			'hooks': [],
-			'format': [od([	('itemtype',nbt.TAG_Short),
-							('amount',	nbt.TAG_Byte),
-							('life',	nbt.TAG_Short),])] },
+			'format': [od([	('itemtype',	nbt.TAG_Short),
+							('amount',		nbt.TAG_Byte),
+							('life',		nbt.TAG_Short),])] },
 	
-	0x12: {	'name':'armanim',			'decoders': [decodeAnimateArm],			'hooks': []},
-	
+	0x12: {	'name':'armanim',
+			'decoders': [decodeAnimateArm],
+			'hooks': [],
+			'format': [od([	('entityID',	nbt.TAG_Int),
+							('forward?',		nbt.TAG_Bool),])] },
+		
 	#entities
 	
-	0x14: {	'name':'namedentspawn',		'decoders': [decodeNamedEntitySpawn],	'hooks': []},
+	0x14: {	'name':'namedentspawn',		
+			'decoders': [decodeNamedEntitySpawn],	
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('playerName',	nbt.TAG_String),
+							('x',			nbt.TAG_Int),
+							('y',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),
+							('currentItem',	nbt.TAG_Short),])] },
+								
+	0x15: {	'name':'pickupspawn',		
+			'decoders': [decodePickupSpawn],		
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('item',		nbt.TAG_Short),
+							('count',		nbt.TAG_Byte),
+							('x',			nbt.TAG_Int),
+							('y',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),
+							('roll',		nbt.TAG_Byte),])] },
 	
-	0x15: {	'name':'pickupspawn',		'decoders': [decodePickupSpawn],		'hooks': []},
+	0x16: {	'name':'collectitem',		
+			'decoders': [decodeCollectItem],		
+			'hooks': [],
+			'format': [od([	('collectedItemID', nbt.TAG_Int),
+							('itemCollectorID', nbt.TAG_Int),])] },
 	
-	0x16: {	'name':'collectitem',		'decoders': [decodeCollectItem],		'hooks': []},
+	0x17: {	'name':'vehiclespawn',		
+			'decoders': [decodeVehicleSpawn],		
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('type',		nbt.TAG_Byte),
+							('x',			nbt.TAG_Int),
+							('y',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),])] },
 	
-	0x17: {	'name':'vehiclespawn',		'decoders': [decodeVehicleSpawn],		'hooks': []},
+	0x18: {	'name':'mobspawn',			
+			'decoders': [decodeMobSpawn],			
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('mobtype',		nbt.TAG_Byte),
+							('x',			nbt.TAG_Int),
+							('y',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),])] },
 	
-	0x18: {	'name':'mobspawn',			'decoders': [decodeMobSpawn],			'hooks': []},
+	0x1D: {	'name':'destroyent',		
+			'decoders': [decodeDestroyEntity],		
+			'hooks': [],
+			'format': [od([	('uniqueID', 	nbt.TAG_Int),])] },
 	
-	0x1D: {	'name':'destroyent',		'decoders': [decodeDestroyEntity],		'hooks': []},
+	0x1E: {	'name':'entity',			
+			'decoders': [decodeEntity],				
+			'hooks': [],
+			'format': [od([	('uniqueID', 	nbt.TAG_Int),])] },
 	
-	0x1E: {	'name':'entity',			'decoders': [decodeEntity],				'hooks': []},
+	0x1F: {	'name':'relentmove',		
+			'decoders': [decodeRelativeEntityMove],	
+			'hooks': [],
+			'format': [od([	('uniqueID', 	nbt.TAG_Int),
+							('x',			nbt.TAG_Byte),
+							('y',			nbt.TAG_Byte),
+							('z',			nbt.TAG_Byte),])] },
 	
-	0x1F: {	'name':'relentmove',		'decoders': [decodeRelativeEntityMove],	'hooks': []},
-	
-	0x20: {	'name':'entitylook',		'decoders': [decodeEntityLook],			'hooks': []},
-	
-	0x21: {	'name':'relentmovelook',	'decoders': [decodeEntityMoveAndLook],	'hooks': []},
-	
-	0x22: {	'name':'enttele',			'decoders': [decodeEntityTeleport],		'hooks': []},
-	
+	0x20: {	'name':'entitylook',
+			'decoders': [decodeEntityLook],
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),])] },
+							
+	0x21: {	'name':'relentmovelook',
+			'decoders': [decodeEntityMoveAndLook],
+			'hooks': [],
+			'format': [od([	('uniqueID', 	nbt.TAG_Int),
+							('x',			nbt.TAG_Byte),
+							('y',			nbt.TAG_Byte),
+							('z',			nbt.TAG_Byte),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),])] },
+							
+	0x22: {	'name':'enttele',
+			'decoders': [decodeEntityTeleport],	
+			'hooks': [],
+			'format': [od([	('uniqueID', 	nbt.TAG_Int),
+							('x',			nbt.TAG_Int),
+							('y',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),
+							('pitch',		nbt.TAG_Byte),])] },
+							
 	#map
 	
-	0x32: {	'name':'prechunk',			'decoders': [decodePreChunk],			'hooks': []},
+	0x32: {	'name':'prechunk',
+			'decoders': [decodePreChunk],			
+			'hooks': [],
+			'format': [od([	('x',			nbt.TAG_Int),
+							('z',			nbt.TAG_Int),
+							('rotation',	nbt.TAG_Byte),])] },
+							
+	0x33: {	'name':'mapchunk',
+			'decoders': [decodeMapChunk],			
+			'hooks': [],
+			'format': [od([	('x',		nbt.TAG_Int),
+							('y',		nbt.TAG_Short),
+							('z',		nbt.TAG_Int),
+							('size_x',	nbt.TAG_Byte),
+							('size_y',	nbt.TAG_Byte),
+							('size_z',	nbt.TAG_Byte),
+							('chunk',	nbt.TAG_Byte), ])] },
+							
+						
+	0x34: {	'name':'multiblockchange',	
+			'decoders': [decodeMultiBlockChange],	
+			'hooks': []},
 	
-	0x33: {	'name':'mapchunk',			'decoders': [decodeMapChunk],			'hooks': []},
-	
-	0x34: {	'name':'multiblockchange',	'decoders': [decodeMultiBlockChange],	'hooks': []},
-	
-	0x35: {	'name':'blockchange',		'decoders': [decodeBlockChange],		'hooks': []},
-	
+	0x35: {	'name':'blockchange',
+			'decoders': [decodeBlockChange],
+			'hooks': [],
+			'format': [od([	('x',	nbt.TAG_Int),
+							('y',	nbt.TAG_Byte),
+							('z',	nbt.TAG_Int),
+							('type',nbt.TAG_Byte),
+							('meta',nbt.TAG_Byte),])] },
+					
 	#testing packet
 	
-	0x3B: {	'name':'complexent', 		'decoders': [decodeComplexEntity],		'hooks': []},
+	0x3B: {	'name':'complexent', 		
+			'decoders': [decodeComplexEntity],		
+			'hooks': []},
 	
 	#disconnect
 	
-	0xFF: {	'name':'disconnect',			'decoders': [decodeDisconnect],			'hooks': []},
+	0xFF: {	'name':'disconnect',
+			'decoders': [decodeDisconnect],
+			'hooks': [],
+			'format': [od([	('reason', nbt.TAG_String),])] },
 }
 
 name_to_id = dict([(decoders[id]['name'], id) for id in decoders])
