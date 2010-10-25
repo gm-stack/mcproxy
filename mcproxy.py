@@ -24,9 +24,14 @@ class FowardingBuffer():
 	def write(self, bytes):
 		self.outsock.send(bytes)
 		
-	def packet_end(self):
-		rpack = self.lastpack
+	def packet_start(self):
 		self.lastpack = ""
+		
+	def packet_end(self):
+		return lastpack
+		
+	def render_last_packet(self):
+		rpack = self.lastpack
 		truncate = False
 		if len(rpack) > 32:
 			rpack = rpack[:32]
