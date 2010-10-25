@@ -438,9 +438,11 @@ def encode(direction, packetID, packet):
 	outbuff.seek(0)
 	packet_desc = decoders[packetID]
 	
+	#write in the packet id
+	nbt.TAG_ByteU(value=packetID)._render_buffer(outbuff)
+	
 	#encode by format description
 	if packet_desc['format']:
-		print "has format"
 		format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
 		#render packet to buffer
 		for field in format:
@@ -455,7 +457,5 @@ def encode(direction, packetID, packet):
 	else:
 		print("unable to render packetID", packetID)
 	
-	packet = outbuff.read()
-	print packet
-	print "length %i" % len(packet)
-	return packet
+	outbuff.seek(0)
+	return outbuff.read()

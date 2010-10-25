@@ -188,7 +188,7 @@ def ishell(serverprops):
 		elif commandname == 'testchat':
 			packet = { 'message': 'lol'}
 			encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['chat'],packet)
-			#serverprops.comms.clientqueue.put(encpacket)
+			serverprops.comms.clientqueue.put(encpacket)
 			print "packet sent"
 		elif commandname == 'inventory':
 			if len(command)==1:
