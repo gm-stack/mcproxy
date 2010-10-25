@@ -35,6 +35,7 @@ def playerLookHook(packetid, packet, serverprops, serverqueue, clientqueue):
 
 def timeChangeHook(packetid, packet, serverprops, serverqueue, clientqueue):
 	packet['time'] = 9000
+	print "hook being called"
 	return packet
 
 def viewCustomEntities(packetid, packet, serverprops, serverqueue, clientqueue):
@@ -57,6 +58,7 @@ namedhooks = {
 	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
 	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
 	'inventoryTracker':	{ 'func': inventoryTracker,	'packet': 'inventory'},
+	'timeChangeHook': {'func': timeChangeHook, 'packet': 'time'},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])

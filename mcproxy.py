@@ -55,12 +55,15 @@ def sock_foward(dir, insocket,outsocket, inqueue, outqueue, svrprops):
 				continue
 			packetbytes = buff.packet_end()
 			
-			packet_info(packetid, packet, buff, serverprops)
 			modpacket = run_hooks(packetid, packet, svrprops, outqueue, inqueue)
 			if modpacket == None: # if run_hooks returns none, the packet was not modified
+				packet_info(packetid, packet, buff, serverprops)
 				buff.write(packetbytes)
 			else:
+				packet_info(packetid, modpacket, buff, serverprops)
 				buff.write(mcpackets.encode(dir,packetid,modpacket))
+				#print "changed packet"
+				#packet_info(packetid, modpacket, buff, serverprops)
 			
 			#send all items in the outgoing queue
 			inqueue = Queue()
@@ -177,7 +180,10 @@ def ishell(serverprops):
 						for hook in decoder['hooks']:
 							if hooks.hook_to_name[hook] == hookname:
 								decoder['hooks'].remove(hook)
-		elif command_name == 'inventory':
+		elif commandname == 'addtoinv':
+			packet = { 'itemtype': 4, 'amount': 64, 'life': 0}
+			serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
+		elif commandname == 'inventory':
 			if len(command)==1:
 				print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
 			subcommand = command[1]
@@ -201,6 +207,8 @@ def ishell(serverprops):
 				for slot in hooks.current_inv:
 					if hooks.current_inv[slot]:
 						print ("%i: %ix%s" % (slot, hooks.current_inv[slot]['count'], hooks.current_inv[slot]['itemid']))
+		else:
+			print "Unknown command. Try 'help'."
 
 #storage class for default server properties
 class serverprops():
@@ -213,6 +221,11 @@ class serverprops():
 	playerdata = {}
 	playerdata_lock = RLock()
 	guistatus = {}
+	class comms():
+		clientsocket = None
+		serversocket = None
+		clientqueue = None
+		serverqueue = None
 
 def startNetworkSockets(serverprops):
 	#====================================================================================#
@@ -227,17 +240,18 @@ def startNetworkSockets(serverprops):
 	print("Waiting for connection...")
 	
 	clientsocket, addr = listensocket.accept()
+	serverprops.comms.clientsocket = clientsocket
 	print("Connection accepted from %s" % str(addr))
-	clientqueue = Queue()
-	
+	clientqueue = serverprops.comms.clientqueue = Queue()
+
 	# Server Socket
 	host = '120.146.252.81'
 	# make it pick one from: http://servers.minecraftforum.net/
 	port = 25565
-	print("Connecting to %s..." % host)	
-	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	print("Connecting to %s..." % host)    
+	serversocket = serverprops.comms.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.connect((host,port))
-	serverqueue = Queue()
+	serverqueue = serverprops.comms.serverqueue = Queue()
 	
 	#start processing threads	
 	

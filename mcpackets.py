@@ -440,7 +440,7 @@ def encode(direction, packetID, packet):
 	
 	#encode by format description
 	if packet_desc['format']:
-		encoder = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
+		format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
 		#render packet to buffer
 		for field in format:
 			format[field](value=packet[field])._render_buffer(outbuff)
