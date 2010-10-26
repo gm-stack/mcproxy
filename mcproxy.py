@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-import thread, socket, struct, time, sys, traceback
+import socket, struct, time, sys, traceback
 from Queue import Queue
 from threading import Thread, RLock
 from binascii import hexlify
@@ -95,12 +95,9 @@ def run_hooks(packetid, packet, serverprops):
 def packet_info(packetid, packet, buff, serverprops):
 	if serverprops.dump_packets:
 		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
-			if packet['dir'] == 's2c':
-				print("s-->c", mcpackets.decoders[packetid]['name'], ":", packet)
-			else:
-				print("c<--s", mcpackets.decoders[packetid]['name'], ":", packet)
+			print packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet
 		if serverprops.hexdump:
-			print(buff.render_last_packet())
+			print buff.render_last_packet()
 
 def addHook(hookname):
 	if hookname in hooks.namedhooks:
@@ -117,24 +114,30 @@ def ishell(serverprops):
 		commandname = command[0]
 		if commandname == "dumpPackets":
 			serverprops.dump_packets = not serverprops.dump_packets
-			print("packet dumping is", ("on" if serverprops.dump_packets else "off"))
+			print "packet dumping is", ("on" if serverprops.dump_packets else "off") 
 		elif commandname == "findPlayer":
 			serverprops.locfind = not serverprops.locfind
-			print("location reporting is", ("on" if serverprops.locfind else "off"))
+			print "location reporting is", ("on" if serverprops.locfind else "off") 
 		elif commandname == "filter":
 			if len(command) == 1:
 				serverprops.dumpfilter = not serverprops.dumpfilter
-				print("dumpfilter is", ("on" if serverprops.dumpfilter else "off"))
+				print "dumpfilter is", ("on" if serverprops.dumpfilter else "off") 
 			if len(command) >= 2:
 				for cmd in command[1:]:
 					try:
-						packtype = int(cmd)
+						packtype = int(cmd, 16) #base 16, i.e. hex
 						if packtype > 0:
 							serverprops.filterlist.append(packtype)
 						if packtype < 0:
 							serverprops.filterlist.remove(-1*packtype)
 					except:
-						print("could not understand", cmd)
+						namelist = [d['name'] for d in mcpackets.decoders]
+						if cmd in namelist:
+							serverprops.filterlist.append(mcpackets.name_to_id[cmd])
+						elif (cmd[0]=='-' and cmd[1:] in namelist):
+							serverprops.filterlist.remove(mcpackets.name_to_id[cmd[1:]])
+						else:
+							print "could not understand", cmd
 		elif commandname == "inventory":
 			itemtype = 17
 			amount = 1
@@ -278,9 +281,9 @@ def startNetworkSockets(serverprops):
 		
 		#start processing threads	
 		
-		serverthread = Thread(target=sock_foward, name="Thread-c2s", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
+		serverthread = Thread(target=sock_foward, name="ClientToServer", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
 		serverthread.start()
-		clientthread = Thread(target=sock_foward, name="Thread-s2c", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
+		clientthread = Thread(target=sock_foward, name="ServerToClient", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
 		clientthread.start()
 		
 		#wait for something bad to happen :(
@@ -296,8 +299,8 @@ if __name__ == "__main__":
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
 	
-	thread.start_new_thread(startNetworkSockets,(serverprops,))	
-	thread.start_new_thread(ishell, (serverprops,))
+	Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,)).start()
+	Thread(name="InteractiveShell", target=ishell, args=(serverprops,)).start()
 
 	addHook('timeHook')
 	addHook('playerPosHook')
