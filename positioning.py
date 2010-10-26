@@ -13,10 +13,10 @@ def getOffset(playerpos, targetpos):
 			 playerpos[2] - targetpos[2])
 
 def getDistance3D(playerpos, targetpos):
-	return math.sqrt(math.fabs(playerpos[0] - targetpos[0]) + math.fabs(playerpos[1] - targetpos[1]) + math.fabs(playerpos[2] - targetpos[2]))
+	return math.sqrt((playerpos[0] - targetpos[0])**2 + (playerpos[1] - targetpos[1])**2 + (playerpos[2] - targetpos[2])**2)
 
 def getDistance2D(playerpos, targetpos):
-	return math.sqrt(math.fabs(playerpos[0] - targetpos[0]) + math.fabs(playerpos[2] - targetpos[2]))
+	return math.sqrt((playerpos[0] - targetpos[0])**2 + (playerpos[2] - targetpos[2])**2)
 
 def vertAngle(playerpos, targetpos):
 	distance = getDistance2D(playerpos, targetpos)
@@ -25,15 +25,14 @@ def vertAngle(playerpos, targetpos):
 
 def compassDirection(playerpos, targetpos):
 	offset = getOffset(playerpos, targetpos)
-	x = offset[0]
-	z = offset[2]
-	distance = getDistance2D(playerpos, targetpos)
-	if (x == 0 and y == 0):
-		return 0
+	distance = getDistance2D(playerpos,targetpos)
+	x = offset[0]/distance
+	z = offset[2]/distance
 	if (x > 0):
-		return math.asin(x/distance)
+		return math.degrees(math.atan(z/x))+90
 	else:
-		return math.asin(x/distance)+(math.pi)
+		return math.degrees(math.atan(z/x))+270
+	
 
 # -x = north
 # +x = south

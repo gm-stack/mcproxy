@@ -12,7 +12,15 @@ def start_gui(serverprops):
 	app.exec_()
 	
 def playerDataUpdate(serverprops):
-	pass
+	if serverprops.currentwp:
+		playerpos = serverprops.playerdata['location']
+		wppos = serverprops.waypoint[serverprops.currentwp]
+		
+		offset = positioning.getOffset(playerpos,wppos)
+		angle = positioning.compassDirection(playerpos,wppos)
+		hrangle = positioning.humanReadableAngle(angle)
+		distance = positioning.getDistance2D(playerpos,wppos)
+		serverprops.gui['wpdir'].setText("%.2f blocks %s\noffset: %i,%i,%i\nangle: %i" % (distance,hrangle,offset[0],offset[1],offset[2],angle))
 
 class MainWindow(QtGui.QWidget):
 	serverprops = None
@@ -49,9 +57,12 @@ class MainWindow(QtGui.QWidget):
 		
 		serverprops.gui['wpname'] = QtGui.QLabel('')
 		serverprops.gui['wploc'] = QtGui.QLabel('')
+		serverprops.gui['wpdir'] = QtGui.QLabel('')
 		
 		grid.addWidget(serverprops.gui['wpname'], 7, 0, 1, 2)
 		grid.addWidget(serverprops.gui['wploc'], 8, 0, 1, 2)
+		grid.addWidget(serverprops.gui['wpdir'], 9, 0, 1, 2)
+		
 		
 		self.setLayout(grid)
 	

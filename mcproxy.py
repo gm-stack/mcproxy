@@ -85,8 +85,8 @@ def run_hooks(packetid, packet, serverprops):
 				if retpacket != None:
 					packet = retpacket
 					ret = packet
-			except:
-				#print traceback.print_stack()
+			except Exception as e:
+				traceback.print_exc()
 				print('Hook "%s" crashed!' % hooks.hook_to_name[hook]) #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
 				mcpackets.decoders[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
