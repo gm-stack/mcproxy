@@ -8,7 +8,7 @@ def start_gui(serverprops):
 	app = QtGui.QApplication(sys.argv)
 	main = MainWindow(serverprops)
 	main.show()
-	sys.exit(app.exec_())
+	app.exec_()
 	#root = Tk()
 	
 	#serverprops.guistatus['time'] = StringVar()
