@@ -5,34 +5,26 @@
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
 
-import positioning
+import positioning, gui
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']
 	mchour = int(((time + 6000) % 24000) / 1000)
 	mcminute = int(((time % 1000) / 1000.0) * 60.0)
-	
-	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['time'] = (mchour,mcminute)
 	serverprops.gui['time'].setText("%i:%.2i" % serverprops.playerdata['time'])
-	serverprops.playerdata_lock.release()
-	#print("The time is: %i:%.2i" % (mchour,mcminute))
 
 def playerPosHook(packetid, packet, serverprops):
-	#print("player location x:%f y:%f z:%f" % (packet['x'], packet['y'], packet['z']))
-	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
 	serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
-	serverprops.playerdata_lock.release()
+	gui.playerDataUpdate(serverprops)
 
 def playerLookHook(packetid, packet, serverprops):
-	#print("player is pointing %s, vertical angle %i" % (positioning.humanReadableAngle(packet['rotation']), packet['pitch']))
-	serverprops.playerdata_lock.acquire()
 	serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
 	rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
 	pitch = serverprops.playerdata['angle'][1]
 	serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
-	serverprops.playerdata_lock.release()
+	gui.playerDataUpdate(serverprops)
 
 def timeChangeHook(packetid, packet, serverprops):
 	packet['time'] = 9000
@@ -45,7 +37,11 @@ def viewCustomEntities(packetid, packet, serverprops):
 	print("@x:%i,y:%i,z%i"%(packet['x'],packet['y'],packet['z']))
 	payload = NBTFile(buffer=GzipFile(fileobj=StringIO(packet['payload'])))
 	print(payload.pretty_tree())
-	
+
+def spawnHook(packetid, packet, serverprops):
+	serverprops.waypoint['Spawn'] = (packet['x'],packet['y'],packet['z'])
+	serverprops.gui['wplist'].addItem("Spawn")
+	gui.playerDataUpdate(serverprops)
 
 current_inv = {}
 def inventoryTracker(packetid, packet, serverprops):
@@ -59,6 +55,7 @@ namedhooks = {
 	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
 	'inventoryTracker':	{ 'func': inventoryTracker,	'packet': 'inventory'},
 	'timeChangeHook': {'func': timeChangeHook, 'packet': 'time'},
+	'spawnPosition': {'func': spawnHook, 'packet': 'spawnposition'},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])

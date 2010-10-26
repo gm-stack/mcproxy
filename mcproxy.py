@@ -86,7 +86,7 @@ def run_hooks(packetid, packet, serverprops):
 					packet = retpacket
 					ret = packet
 			except:
-				#execption = traceback.print_stack()
+				#print traceback.print_stack()
 				print('Hook "%s" crashed!' % hooks.hook_to_name[hook]) #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
 				mcpackets.decoders[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
@@ -124,6 +124,8 @@ class serverprops():
 	playerdata = {}
 	playerdata_lock = RLock()
 	gui = {}
+	waypoint = {}
+	currentwp = ""
 	class comms():
 		clientqueue = None
 		serverqueue = None
@@ -180,5 +182,7 @@ if __name__ == "__main__":
 	addHook('timeHook')
 	addHook('playerPosHook')
 	addHook('playerLookHook')
+	addHook('spawnPosition')
 	import gui
 	gui.start_gui(serverprops)
+	#app should exit here, and threads should terminate

@@ -23,6 +23,18 @@ def vertAngle(playerpos, targetpos):
 	vDiff = playerpos[1] - targetpos[1]
 	return math.atan(vDiff / distance)
 
+def compassDirection(playerpos, targetpos):
+	offset = getOffset(playerpos, targetpos)
+	x = offset[0]
+	z = offset[2]
+	distance = getDistance2D(playerpos, targetpos)
+	if (x == 0 and y == 0):
+		return 0
+	if (x > 0):
+		return math.asin(x/distance)
+	else:
+		return math.asin(x/distance)+(math.pi)
+
 # -x = north
 # +x = south
 # -z = east

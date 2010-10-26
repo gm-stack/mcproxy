@@ -1,6 +1,7 @@
 import sys
 import time
-from PyQt4 import QtGui
+import positioning
+from PyQt4 import QtGui, QtCore
 
 framerate = 30
 
@@ -9,23 +10,15 @@ def start_gui(serverprops):
 	main = MainWindow(serverprops)
 	main.show()
 	app.exec_()
-	#root = Tk()
 	
-	#serverprops.guistatus['time'] = StringVar()
-	#serverprops.guistatus['location'] = StringVar()
-	#serverprops.guistatus['angle'] = StringVar()
-	#serverprops.guistatus['humanreadable'] = StringVar()	
-	
-	#Label(root, textvariable=serverprops.guistatus['time'], justify=LEFT).pack()
-	#Label(root, textvariable=serverprops.guistatus['location'], justify=LEFT).pack()
-	#Label(root, textvariable=serverprops.guistatus['angle'], justify=LEFT).pack()
-	#Label(root, textvariable=serverprops.guistatus['humanreadable'], justify=LEFT).pack()
-	
-	#root.mainloop()
+def playerDataUpdate(serverprops):
+	pass
 
 class MainWindow(QtGui.QWidget):
+	serverprops = None
 	def __init__(self, serverprops):
 		QtGui.QMainWindow.__init__(self)
+		self.serverprops = serverprops
 		
 		#self.resize(250, 150)
 		self.setWindowTitle('mcproxy')
@@ -47,8 +40,29 @@ class MainWindow(QtGui.QWidget):
 		grid.addWidget(serverprops.gui['pos'], 2, 1)
 		grid.addWidget(serverprops.gui['angle'], 3, 1)
 		
+		grid.addWidget(QtGui.QLabel('Waypoint:'), 5, 0)
+		
+		serverprops.gui['wplist'] = QtGui.QListWidget()
+		
+		QtCore.QObject.connect(serverprops.gui['wplist'], QtCore.SIGNAL("currentItemChanged (QListWidgetItem *,QListWidgetItem *)"), self.wayPointSelected)
+		grid.addWidget(serverprops.gui['wplist'], 6, 0, 1, 2)
+		
+		serverprops.gui['wpname'] = QtGui.QLabel('')
+		serverprops.gui['wploc'] = QtGui.QLabel('')
+		
+		grid.addWidget(serverprops.gui['wpname'], 7, 0, 1, 2)
+		grid.addWidget(serverprops.gui['wploc'], 8, 0, 1, 2)
+		
 		self.setLayout(grid)
-
-def input(event):
-	print("got an event")
-	return
+	
+	def wayPointSelected(self, current=None, previous=None):
+		selwp = str(current.text())
+		self.serverprops.currentwp = selwp
+		print "selected waypoint: %s" % selwp
+		self.serverprops.gui['wpname'].setText(selwp)
+		print self.serverprops.waypoint
+		if selwp in self.serverprops.waypoint:
+			self.serverprops.gui['wploc'].setText("%.2f,%.2f,%.2f" % self.serverprops.waypoint[selwp])
+		else:
+			print "waypoint undefined"
+			self.serverprops.gui['wploc'].setText("unknown")
