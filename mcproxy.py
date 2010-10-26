@@ -248,7 +248,7 @@ class serverprops():
 	screen = None
 	playerdata = {}
 	playerdata_lock = RLock()
-	guistatus = {}
+	gui = {}
 	class comms():
 		clientqueue = None
 		serverqueue = None
