@@ -111,7 +111,10 @@ def ishell(serverprops):
 	while True:
 		command = raw_input(">")
 		command = command.split(" ")
-		commands.runCommand(serverprops,command)
+		try:
+			commands.runCommand(serverprops,command)
+		except:
+			print "error in command", command.split(" ")[0] 
 		
 
 #storage class for default server properties
