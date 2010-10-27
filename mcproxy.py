@@ -148,7 +148,7 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.clientqueue = Queue()
 		
 		# Server Socket
-		host = '120.146.252.81'
+		host = ('120.146.252.81' if len(sys.argv) < 2 else sys.argv[1])
 		# make it pick one from: http://servers.minecraftforum.net/
 		port = 25565
 		print("Connecting to %s..." % host)	
