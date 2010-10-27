@@ -26,6 +26,8 @@ def vertAngle(playerpos, targetpos):
 def compassDirection(playerpos, targetpos):
 	offset = getOffset(playerpos, targetpos)
 	x = offset[0]
+	if x == 0:
+		x = 0.001
 	z = offset[2]
 	if (x > 0):
 		return math.degrees(math.atan(z/x))+90
