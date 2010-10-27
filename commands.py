@@ -1,4 +1,4 @@
-import hooks, mcpackets
+import hooks, mcpackets, items
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets

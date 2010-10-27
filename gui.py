@@ -64,6 +64,7 @@ class MainWindow(QtGui.QWidget):
 		grid.addWidget(serverprops.gui['wpdir'], 9, 0, 1, 2)
 		
 		
+		
 		self.setLayout(grid)
 	
 	def wayPointSelected(self, current=None, previous=None):
