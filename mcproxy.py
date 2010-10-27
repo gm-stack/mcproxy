@@ -157,10 +157,12 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.serverqueue = Queue()
 		
 		#start processing threads	
-		
 		serverthread = Thread(target=sock_foward, name="ClientToServer", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
+		serverthread.setDaemon(True)
 		serverthread.start()
+		
 		clientthread = Thread(target=sock_foward, name="ServerToClient", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
+		clientthread.setDaemon(True)
 		clientthread.start()
 		
 		#wait for something bad to happen :(
@@ -176,9 +178,14 @@ if __name__ == "__main__":
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
 	
-	Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,)).start()
-	Thread(name="InteractiveShell", target=ishell, args=(serverprops,)).start()
-
+	sd = Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,))
+	sd.setDaemon(True)
+	sd.start()
+	
+	shell = Thread(name="InteractiveShell", target=ishell, args=(serverprops,))
+	shell.setDaemon(True)
+	shell.start()
+	
 	addHook('timeHook')
 	addHook('playerPosHook')
 	addHook('playerLookHook')
