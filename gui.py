@@ -71,6 +71,22 @@ class MainWindow(QtGui.QWidget):
 		grid.addWidget(gui['newwp'],10,1)
 		QtCore.QObject.connect(gui['newwp'], QtCore.SIGNAL("clicked()"), self.newWayPoint)
 		
+		gui['wpx'] = QtGui.QLineEdit()
+		gui['wpy'] = QtGui.QLineEdit()
+		gui['wpz'] = QtGui.QLineEdit()
+		gui['wplocbtn'] = QtGui.QPushButton('New with loc')
+		xyz = QtGui.QHBoxLayout()
+		xyz.addWidget(gui['wpx'])
+		xyz.addWidget(gui['wpy'])
+		xyz.addWidget(gui['wpz'])
+		xyz.addWidget(gui['wplocbtn'])
+		QtCore.QObject.connect(gui['wplocbtn'], QtCore.SIGNAL("clicked()"), self.newWayPointWithLoc)
+		gui['wpx'].setFixedWidth(40)
+		gui['wpy'].setFixedWidth(40)
+		gui['wpz'].setFixedWidth(40)
+		grid.addLayout(xyz,11,0,1,2)
+		
+		
 		self.setLayout(grid)
 	
 	def wayPointSelected(self, current=None, previous=None):
@@ -91,5 +107,17 @@ class MainWindow(QtGui.QWidget):
 			if not wpname in self.serverprops.waypoint:
 				self.serverprops.gui['wplist'].addItem(wpname)
 			self.serverprops.waypoint[wpname] = self.serverprops.playerdata['location']
-			
-			print "new waypoint %s" % wpname
+	
+	def newWayPointWithLoc(self):
+		wpname = str(self.serverprops.gui['wpnamef'].text())
+		try:
+			wpx = int(str(self.serverprops.gui['wpx'].text()))
+			wpy = int(str(self.serverprops.gui['wpy'].text()))
+			wpz = int(str(self.serverprops.gui['wpz'].text()))
+		except:
+			print "not an integer value"
+			return
+		if wpname:
+			if not wpname in self.serverprops.waypoint:
+				self.serverprops.gui['wplist'].addItem(wpname)
+			self.serverprops.waypoint[wpname] = (wpx,wpy,wpz)

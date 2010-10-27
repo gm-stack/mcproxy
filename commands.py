@@ -58,7 +58,7 @@ def hook(serverprops, command):
 				print("reload failed")
 		elif subcommand == "add":
 			hookname = command[2]
-			addHook(hookname)
+			hooks.addHook(hookname)
 		elif subcommand == "active":
 			for decoder in mcpackets.decoders.values():
 				for hook in decoder['hooks']:
