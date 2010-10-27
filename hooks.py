@@ -5,7 +5,7 @@
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
 
-import positioning, gui
+import positioning, gui, mcpackets
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']
@@ -60,13 +60,10 @@ namedhooks = {
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
 
-
-blocknames = {
-			256: "Iron Spade",
-			257: "Iron Pickaxe",
-			258: "Iron Axe",
-			259: "Flint and Steel"
-			}
-
-
-
+def addHook(hookname):
+	if hookname in namedhooks:
+		packet = namedhooks[hookname]['packet']
+		hookclass = namedhooks[hookname]['func']
+		mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
+	else:
+		print("hook %s not found" % hookname)

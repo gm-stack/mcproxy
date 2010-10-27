@@ -86,6 +86,9 @@ def addtoinv(serverprops, command):
 			if command[1] in items.id2underName:
 				itemtype = items.id2underName[command[1]]
 				haveitem = 1
+			if command[1] in items.item2underName:
+				itemtype = items.item2underName[command[1]]
+				haveitem = 1
 			else:
 				print "Unknown item"
 		if haveitem:

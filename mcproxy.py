@@ -99,14 +99,6 @@ def packet_info(packetid, packet, buff, serverprops):
 		if serverprops.hexdump:
 			print buff.render_last_packet()
 
-def addHook(hookname):
-	if hookname in hooks.namedhooks:
-		packet = hooks.namedhooks[hookname]['packet']
-		hookclass = hooks.namedhooks[hookname]['func']
-		mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
-	else:
-		print("hook %s not found" % hookname)
-
 def ishell(serverprops):
 	while True:
 		command = raw_input(">")
@@ -189,10 +181,10 @@ if __name__ == "__main__":
 	shell.setDaemon(True)
 	shell.start()
 	
-	addHook('timeHook')
-	addHook('playerPosHook')
-	addHook('playerLookHook')
-	addHook('spawnPosition')
+	hooks.addHook('timeHook')
+	hooks.addHook('playerPosHook')
+	hooks.addHook('playerLookHook')
+	hooks.addHook('spawnPosition')
 	import gui
 	gui.start_gui(serverprops)
 	#app should exit here, and threads should terminate
