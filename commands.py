@@ -49,26 +49,10 @@ def hook(serverprops, command):
 		if subcommand == "list":
 			for hook in hooks.namedhooks:
 				print("%s: %s" % (hook, hooks.namedhooks[hook]['packet']))
-		elif subcommand == "reload":
-			try:
-				reload(hooks)
-				print("hooks reloaded")
-			except:
-				traceback.print_stack()
-				print("reload failed")
-		elif subcommand == "add":
-			hookname = command[2]
-			hooks.addHook(hookname)
 		elif subcommand == "active":
 			for decoder in mcpackets.decoders.values():
 				for hook in decoder['hooks']:
 					print("%s: %s" % (decoder['name'], hooks.hook_to_name[hook]))
-		elif subcommand == "remove":
-			hookname = command[2]
-			for decoder in mcpackets.decoders.values():
-				for hook in decoder['hooks']:
-					if hooks.hook_to_name[hook] == hookname:
-						decoder['hooks'].remove(hook)
 
 def addtoinv(serverprops, command):
 	if len(command) == 1:
@@ -101,6 +85,12 @@ def testchat(serverprops, command):
 	serverprops.comms.clientqueue.put(encpacket)
 	print "packet sent"
 
+def testpos(serverprops, command):
+	packet = {'x':0, 'y':120, 'stance':120, 'z':0, 'rotation':0, 'pitch':0, 'flying':0}
+	encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playermovelook'],packet)
+	serverprops.comms.clientqueue.put(encpacket)
+	print "sent"
+
 def inventory(serverprops, command):
 	if len(command)==1:
 		print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
@@ -130,9 +120,10 @@ commandlist = {
 	'filter':filter,
 	'hexdump':hexdump,
 	'help':help,
-	'hook':hook,
+#	'hook':hook,
 	'addtoinv':addtoinv,
 	'testchat':testchat,
+	'testpos':testpos,
 	'inventory':inventory
 }
 

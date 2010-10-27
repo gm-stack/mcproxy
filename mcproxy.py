@@ -182,10 +182,6 @@ if __name__ == "__main__":
 	shell.setDaemon(True)
 	shell.start()
 	
-	hooks.addHook('timeHook')
-	hooks.addHook('playerPosHook')
-	hooks.addHook('playerLookHook')
-	hooks.addHook('spawnPosition')
 	import gui
 	gui.start_gui(serverprops)
 	#app should exit here, and threads should terminate

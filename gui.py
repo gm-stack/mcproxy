@@ -1,6 +1,7 @@
 import sys
 import time
 import positioning
+import hooks
 from PyQt4 import QtGui, QtCore
 
 framerate = 30
@@ -22,6 +23,15 @@ def playerDataUpdate(serverprops):
 		distance = positioning.getDistance2D(playerpos,wppos)
 		serverprops.gui['wpdir'].setText("%.2f blocks %s\noffset: %i,%i,%i\nangle: %i" % (distance,hrangle,offset[0],offset[1],offset[2],angle))
 
+def removeFromMenu(menu,item):
+	num = menu.count()
+	for i in range(num):
+		itemname = str(menu.item(i).text())
+		if itemname == item:
+			menu.takeItem(i)
+			break
+
+
 class MainWindow(QtGui.QWidget):
 	serverprops = None
 	def __init__(self, serverprops):
@@ -29,48 +39,38 @@ class MainWindow(QtGui.QWidget):
 		self.serverprops = serverprops
 		gui = serverprops.gui
 		
-		#self.resize(250, 150)
+		# start main window
 		self.setWindowTitle('mcproxy')
-		#self.statusBar().showMessage('Waiting for connection')
-		#serverprops.guistatus['statusbar'] = self.statusBar()
-		
 		grid = QtGui.QGridLayout()
 		grid.setSpacing(10)
 		
+		# add player info
 		grid.addWidget(QtGui.QLabel('Current Time'), 1, 0)
 		grid.addWidget(QtGui.QLabel('Current Position'), 2, 0)
 		grid.addWidget(QtGui.QLabel('Player Angle'), 3, 0)
-		
 		gui['time'] = QtGui.QLabel('')
 		gui['pos'] = QtGui.QLabel('X:\nY:\nZ:\n')
 		gui['angle'] = QtGui.QLabel('Rotation:\nPitch:\nDirection:')
-		
 		grid.addWidget(gui['time'], 1, 1)
 		grid.addWidget(gui['pos'], 2, 1)
 		grid.addWidget(gui['angle'], 3, 1)
 		
+		# add waypoint list
 		grid.addWidget(QtGui.QLabel('Waypoint:'), 5, 0)
-		
 		gui['wplist'] = QtGui.QListWidget()
-		
 		QtCore.QObject.connect(gui['wplist'], QtCore.SIGNAL("currentItemChanged (QListWidgetItem *,QListWidgetItem *)"), self.wayPointSelected)
 		grid.addWidget(gui['wplist'], 6, 0, 1, 2)
-		
 		gui['wpname'] = QtGui.QLabel('')
 		gui['wploc'] = QtGui.QLabel('')
 		gui['wpdir'] = QtGui.QLabel('')
-		
 		grid.addWidget(gui['wpname'], 7, 0, 1, 2)
 		grid.addWidget(gui['wploc'], 8, 0, 1, 2)
 		grid.addWidget(gui['wpdir'], 9, 0, 1, 2)
-		
 		gui['newwp'] = QtGui.QPushButton('New Waypoint')
 		gui['wpnamef'] = QtGui.QLineEdit()
-		
 		grid.addWidget(gui['wpnamef'],10,0)
 		grid.addWidget(gui['newwp'],10,1)
 		QtCore.QObject.connect(gui['newwp'], QtCore.SIGNAL("clicked()"), self.newWayPoint)
-		
 		gui['wpx'] = QtGui.QLineEdit()
 		gui['wpy'] = QtGui.QLineEdit()
 		gui['wpz'] = QtGui.QLineEdit()
@@ -86,7 +86,29 @@ class MainWindow(QtGui.QWidget):
 		gui['wpz'].setFixedWidth(40)
 		grid.addLayout(xyz,11,0,1,2)
 		
+		# add hooks list
+		hookgrid = QtGui.QGridLayout()
+		hookgrid.addWidget(QtGui.QLabel("Hooks"),1,0,1,2)
+		hookgrid.addWidget(QtGui.QLabel("Available"),2,0)
+		hookgrid.addWidget(QtGui.QLabel("Active"),2,1)
+		gui['hooklist'] = QtGui.QListWidget()
+		gui['hookactive'] = QtGui.QListWidget()
+		hooks.setupInitialHooks(self.serverprops)
 		
+		
+		gui['hooklist'].setFixedWidth(130)
+		gui['hookactive'].setFixedWidth(130)
+		hookgrid.addWidget(gui['hooklist'],3,0,3,1)
+		hookgrid.addWidget(gui['hookactive'],3,1,3,1)
+		gui['activate'] = QtGui.QPushButton('Activate ->')
+		gui['deactivate'] = QtGui.QPushButton('<- Remove')
+		hookgrid.addWidget(gui['activate'],6,0)
+		hookgrid.addWidget(gui['deactivate'],6,1)
+		QtCore.QObject.connect(gui['activate'], QtCore.SIGNAL("clicked()"), self.activateHook)
+		QtCore.QObject.connect(gui['deactivate'], QtCore.SIGNAL("clicked()"), self.deactivateHook)
+		grid.addLayout(hookgrid,1,2,5,2)
+		
+		# set window layout to the grid
 		self.setLayout(grid)
 	
 	def wayPointSelected(self, current=None, previous=None):
@@ -123,3 +145,11 @@ class MainWindow(QtGui.QWidget):
 				self.serverprops.gui['wplist'].addItem(wpname)
 			self.serverprops.waypoint[wpname] = (wpx,wpy,wpz)
 			positioning.saveWaypoints(self.serverprops)
+	
+	def activateHook(self):
+		selected = str(self.serverprops.gui['hooklist'].currentItem().text())
+		hooks.addHook(self.serverprops,selected)
+	
+	def deactivateHook(self):
+		selected = str(self.serverprops.gui['hookactive'].currentItem().text())
+		hooks.removeHook(self.serverprops,selected)

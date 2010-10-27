@@ -61,10 +61,28 @@ namedhooks = {
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
 
-def addHook(hookname):
+def addHook(serverprops,hookname):
 	if hookname in namedhooks:
 		packet = namedhooks[hookname]['packet']
 		hookclass = namedhooks[hookname]['func']
 		mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
+		gui.removeFromMenu(serverprops.gui['hooklist'],hookname)
+		serverprops.gui['hookactive'].addItem(hookname)
 	else:
 		print("hook %s not found" % hookname)
+
+def removeHook(serverprops,hookname):
+	for decoder in mcpackets.decoders.values():
+		for hook in decoder['hooks']:
+			if hook_to_name[hook] == hookname:
+				decoder['hooks'].remove(hook)
+	gui.removeFromMenu(serverprops.gui['hookactive'],hookname)
+	serverprops.gui['hooklist'].addItem(hookname)
+
+def setupInitialHooks(serverprops):
+	for hook in namedhooks:
+		serverprops.gui['hooklist'].addItem(hook)
+	addHook(serverprops,'timeHook')
+	addHook(serverprops,'playerPosHook')
+	addHook(serverprops,'playerLookHook')
+	addHook(serverprops,'spawnPosition')
