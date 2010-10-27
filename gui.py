@@ -107,6 +107,7 @@ class MainWindow(QtGui.QWidget):
 			if not wpname in self.serverprops.waypoint:
 				self.serverprops.gui['wplist'].addItem(wpname)
 			self.serverprops.waypoint[wpname] = self.serverprops.playerdata['location']
+			positioning.saveWaypoints(self.serverprops)
 	
 	def newWayPointWithLoc(self):
 		wpname = str(self.serverprops.gui['wpnamef'].text())
@@ -121,3 +122,4 @@ class MainWindow(QtGui.QWidget):
 			if not wpname in self.serverprops.waypoint:
 				self.serverprops.gui['wplist'].addItem(wpname)
 			self.serverprops.waypoint[wpname] = (wpx,wpy,wpz)
+			positioning.saveWaypoints(self.serverprops)

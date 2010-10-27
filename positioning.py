@@ -71,9 +71,23 @@ def humanReadableAngle(playerangle):
 		index = 0
 	closest = angleNames[index]
 	return closest
-		
-		
-		
-		
-		
-		
+
+def saveWaypoints(serverprops):
+	f = open("waypoints",'w')
+	for waypoint in serverprops.waypoint:
+		value = serverprops.waypoint[waypoint]
+		if not waypoint == "Spawn":
+			wp = "%s,%i,%i,%i\n" % (waypoint.replace(",","_"),value[0],value[1],value[2])
+			f.write(wp)
+	f.close()
+
+def loadWaypoints(serverprops):
+	f = open("waypoints",'r')
+	waypoints = f.readlines()
+	f.close()
+	for waypoint in waypoints:
+		waypoint = waypoint.split(",")
+		if not waypoint[0] == "Spawn":
+			serverprops.gui['wplist'].addItem(waypoint[0])
+			serverprops.waypoint[waypoint[0]] = (int(waypoint[1]),int(waypoint[2]),int(waypoint[3]))
+	

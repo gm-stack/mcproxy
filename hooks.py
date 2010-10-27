@@ -42,6 +42,7 @@ def spawnHook(packetid, packet, serverprops):
 	serverprops.waypoint['Spawn'] = (packet['x'],packet['y'],packet['z'])
 	serverprops.gui['wplist'].addItem("Spawn")
 	gui.playerDataUpdate(serverprops)
+	positioning.loadWaypoints(serverprops)
 
 current_inv = {}
 def inventoryTracker(packetid, packet, serverprops):
