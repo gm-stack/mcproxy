@@ -5,36 +5,6 @@ from StringIO import StringIO
 from hooks import inventoryTracker
 # thanks to http://mc.kev009.com/wiki/Protocol
 
-def decodeSHandshake(buffer):
-	return {
-		'serverID':	nbt.TAG_String(buffer=buffer).value,
-		}
-
-def decodeCHandshake(buffer):
-	return {
-		'username': nbt.TAG_String(buffer=buffer).value,
-		}
-	
-def decodeSLogin(buffer):
-	return {
-		'protoversion':nbt.TAG_Int(buffer=buffer).value,
-		'blank1':nbt.TAG_Byte(buffer=buffer).value,
-		'blank2':nbt.TAG_Byte(buffer=buffer).value,
-		}
-
-def decodeCLogin(buffer):
-	return {
-		'protoversion':nbt.TAG_Int(buffer=buffer).value,
-		'username':nbt.TAG_String(buffer=buffer).value,
-		'password':nbt.TAG_String(buffer=buffer).value,
-		}
-
-def decodeChat(buffer):
-	return { 'message': nbt.TAG_String(buffer=buffer).value, }
-
-def decodeTime(buffer):
-	return { 'time': nbt.TAG_Long(buffer=buffer).value, }
-
 def decodeInventory(buffer):
 	packet = {
 		'type':		nbt.TAG_Int(buffer=buffer).value,
@@ -304,54 +274,54 @@ decoders = {
 			'hooks': []},  
 	
 	0x01: { 'name':'login',
-			'decoders': [decodeSLogin, decodeCLogin],
 			'hooks': [],
-			'format': [od([ ('protoversion',nbt.TAG_Int), 
-							('blank1',nbt.TAG_Byte), 
-							('blank2',		nbt.TAG_Byte), ]),
+			'format': [od([ ('protoversion',nbt.TAG_Int),
+							('blank1',		nbt.TAG_Byte),
+							('blank2',		nbt.TAG_Byte),
+							('blank3', 		nbt.TAG_Long),
+							('blank4',	nbt.TAG_Byte), ]),
 					   od([ ('protoversion',nbt.TAG_Int),
-							('username',nbt.TAG_String), 
-							('password',nbt.TAG_String), ])] },
+							('username',	nbt.TAG_String),
+							('password',	nbt.TAG_String),
+							('seed', 		nbt.TAG_Long),
+							('dimension',	nbt.TAG_Byte), ])] },
 	
 	0x02: { 'name':'handshake',
-			'decoders': [decodeSHandshake],
 			'hooks': [],
-			'format': [od([('serverID',nbt.TAG_String),]),
-					   od([('username',nbt.TAG_String),])] },
+			'format': [od([ ('serverID',	nbt.TAG_String),]),
+					   od([ ('username',	nbt.TAG_String),])] },
 	
 	0x03: {	'name':'chat',
-			'decoders': [decodeChat],
 			'hooks': [],
-			'format': [od([('message', nbt.TAG_String),])] },
+			'format': [od([ ('message', 	nbt.TAG_String),])] },
 	
 	0x04: {	'name':'time',
-			'decoders': [decodeTime],
 			'hooks': [],
-			'format': [od([('time', nbt.TAG_Long)])]},
+			'format': [od([ ('time',		nbt.TAG_Long)])]},
 	
 	0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
 	
 	0x06: {	'name':'spawnposition', 
 			'decoders': [decodeSpawnPosition],
 			'hooks': [],
-			'format': [od([	('x',				nbt.TAG_Int),
-							('y', 				nbt.TAG_Int),
-							('z', 				nbt.TAG_Int)	])]	},
+			'format': [od([	('x', nbt.TAG_Int),
+							('y', nbt.TAG_Int),
+							('z', nbt.TAG_Int)	])]	},
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
 			'decoders': [decodeFlying], 
 			'hooks': [], 
-			'format': [od([	('flying', 			nbt.TAG_Bool), ])] },
+			'format': [od([	('flying', 	nbt.TAG_Bool), ])] },
 	
 	0x0B: {	'name':'playerposition',
 			'decoders': [decodePlayerPosition],	
 			'hooks': [],
-			'format': [od([	('x',				nbt.TAG_Double),
-							('y',				nbt.TAG_Double),
-							('stance',			nbt.TAG_Double),
-							('z',				nbt.TAG_Double),
-							('flying',			nbt.TAG_Bool),])] },
+			'format': [od([	('x',		nbt.TAG_Double),
+							('y',		nbt.TAG_Double),
+							('stance',	nbt.TAG_Double),
+							('z',		nbt.TAG_Double),
+							('flying',	nbt.TAG_Bool),])] },
 						
 	0x0C: {	'name':'playerlook',
 			'decoders': [decodePlayerLook],	
