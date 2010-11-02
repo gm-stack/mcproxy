@@ -161,8 +161,7 @@ class MainWindow(QtGui.QWidget):
 		pass
 	
 	def compassWayPoint(self):
-		wpname = str(self.serverprops.gui['wpnamef'].text())
-		wploc = self.serverprops.waypoint[wpname]
+		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
 		packet = {'x':wploc[0], 'y':wploc[1], 'z':wploc[2]}
 		encpacket = mcpackets.encode("s2c", mcpackets.name_to_id['spawnposition'], packet)
 		self.serverprops.comms.clientqueue.put(encpacket)
