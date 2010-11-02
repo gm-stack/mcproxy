@@ -61,10 +61,13 @@ class MainWindow(QtGui.QWidget):
 		
 		gui['wpdel'] = QtGui.QPushButton('-')
 		gui['wpcomp'] = QtGui.QPushButton('Set Compass')
+		gui['wptele'] = QtGui.QPushButton('Teleport')
 		wpbtns = QtGui.QHBoxLayout()
 		wpbtns.addWidget(gui['wpdel'])
 		wpbtns.addWidget(gui['wpcomp'])
+		wpbtns.addWidget(gui['wptele'])
 		QtCore.QObject.connect(gui['wpcomp'], QtCore.SIGNAL("clicked()"), self.compassWayPoint)
+		QtCore.QObject.connect(gui['wptele'], QtCore.SIGNAL("clicked()"), self.Teleport)
 		grid.addLayout(wpbtns,5,1)
 		
 		
@@ -160,6 +163,12 @@ class MainWindow(QtGui.QWidget):
 	def removeWayPoint(self):
 		pass
 	
+	def Teleport(self):
+		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
+		packet = {'x':wploc[0], 'y':wploc[1]+5, 'stance':0, 'z':wploc[2], 'rotation':0, 'pitch':0, 'flying':0}
+		encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playermovelook'],packet)
+		self.serverprops.comms.clientqueue.put(encpacket)
+		
 	def compassWayPoint(self):
 		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
 		packet = {'x':wploc[0], 'y':wploc[1], 'z':wploc[2]}

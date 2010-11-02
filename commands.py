@@ -86,7 +86,7 @@ def testchat(serverprops, command):
 	print "packet sent"
 
 def testpos(serverprops, command):
-	packet = {'x':0, 'y':120, 'stance':120, 'z':0, 'rotation':0, 'pitch':0, 'flying':0}
+	packet = {'x':173, 'y':70, 'stance':0, 'z':544, 'rotation':0, 'pitch':0, 'flying':0}
 	encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playermovelook'],packet)
 	serverprops.comms.clientqueue.put(encpacket)
 	print "sent"

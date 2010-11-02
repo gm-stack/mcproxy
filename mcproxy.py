@@ -144,7 +144,7 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.clientqueue = Queue()
 		
 		# Server Socket
-		preserv = '120.146.252.81' ##'211.31.18.197'#
+		preserv = 'simplicityminecraft.com' ##'211.31.18.197'#
 		
 		host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 		# make it pick one from: http://servers.minecraftforum.net/
