@@ -92,10 +92,13 @@ def testpos(serverprops, command):
 	print "sent"
 
 def movespawn(serverprops, command):
-	packet = {'x':120, 'y':120, 'z':120}
-	encpacket = mcpackets.encode("s2c", mcpackets.name_to_id['spawnposition'], packet)
-	serverprops.comms.clientqueue.put(encpacket)
-	print "sent"
+	if len(command) == 4:
+		packet = {'x':int(command[1]), 'y':int(command[2]), 'z':int(command[3])}
+		encpacket = mcpackets.encode("s2c", mcpackets.name_to_id['spawnposition'], packet)
+		serverprops.comms.clientqueue.put(encpacket)
+		print "sent"
+	else:
+		print "Not enough arguments 'movespawn X Y Z' Relative to the map, NOT the player"
 
 def inventory(serverprops, command):
 	if len(command)==1:
