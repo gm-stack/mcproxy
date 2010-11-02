@@ -2,6 +2,7 @@ import sys
 import time
 import positioning
 import hooks
+import mcpackets
 from PyQt4 import QtGui, QtCore
 
 framerate = 30
@@ -57,6 +58,16 @@ class MainWindow(QtGui.QWidget):
 		
 		# add waypoint list
 		grid.addWidget(QtGui.QLabel('Waypoint:'), 5, 0)
+		
+		gui['wpdel'] = QtGui.QPushButton('-')
+		gui['wpcomp'] = QtGui.QPushButton('Set Compass')
+		wpbtns = QtGui.QHBoxLayout()
+		wpbtns.addWidget(gui['wpdel'])
+		wpbtns.addWidget(gui['wpcomp'])
+		QtCore.QObject.connect(gui['wpcomp'], QtCore.SIGNAL("clicked()"), self.compassWayPoint)
+		grid.addLayout(wpbtns,5,1)
+		
+		
 		gui['wplist'] = QtGui.QListWidget()
 		QtCore.QObject.connect(gui['wplist'], QtCore.SIGNAL("currentItemChanged (QListWidgetItem *,QListWidgetItem *)"), self.wayPointSelected)
 		grid.addWidget(gui['wplist'], 6, 0, 1, 2)
@@ -145,6 +156,16 @@ class MainWindow(QtGui.QWidget):
 				self.serverprops.gui['wplist'].addItem(wpname)
 			self.serverprops.waypoint[wpname] = (wpx,wpy,wpz)
 			positioning.saveWaypoints(self.serverprops)
+	
+	def removeWayPoint(self):
+		pass
+	
+	def compassWayPoint(self):
+		wpname = str(self.serverprops.gui['wpnamef'].text())
+		wploc = self.serverprops.waypoint[wpname]
+		packet = {'x':wploc[0], 'y':wploc[1], 'z':wploc[2]}
+		encpacket = mcpackets.encode("s2c", mcpackets.name_to_id['spawnposition'], packet)
+		self.serverprops.comms.clientqueue.put(encpacket)
 	
 	def activateHook(self):
 		selected = str(self.serverprops.gui['hooklist'].currentItem().text())

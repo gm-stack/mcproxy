@@ -107,7 +107,7 @@ def ishell(serverprops):
 			commands.runCommand(serverprops,command)
 		except Exception as e:
 			traceback.print_exc()
-			print "error in command", command
+			print "error in command", command.split[0] 
 		
 
 #storage class for default server properties
@@ -144,7 +144,9 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.clientqueue = Queue()
 		
 		# Server Socket
-		host = ('120.146.252.81' if len(sys.argv) < 2 else sys.argv[1])
+		preserv = '120.146.252.81' ##'211.31.18.197'#
+		
+		host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 		# make it pick one from: http://servers.minecraftforum.net/
 		port = 25565
 		print("Connecting to %s..." % host)	
