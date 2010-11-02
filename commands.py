@@ -91,6 +91,12 @@ def testpos(serverprops, command):
 	serverprops.comms.clientqueue.put(encpacket)
 	print "sent"
 
+def movespawn(serverprops, command):
+	packet = {'x':120, 'y':120, 'z':120}
+	encpacket = mcpackets.encode("s2c", mcpackets.name_to_id['spawnposition'], packet)
+	serverprops.comms.clientqueue.put(encpacket)
+	print "sent"
+
 def inventory(serverprops, command):
 	if len(command)==1:
 		print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
@@ -124,7 +130,8 @@ commandlist = {
 	'addtoinv':addtoinv,
 	'testchat':testchat,
 	'testpos':testpos,
-	'inventory':inventory
+	'inventory':inventory,
+	'movespawn':movespawn,
 }
 
 def runCommand(serverprops,command):

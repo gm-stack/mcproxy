@@ -107,7 +107,7 @@ def ishell(serverprops):
 			commands.runCommand(serverprops,command)
 		except Exception as e:
 			traceback.print_exc()
-			print "error in command", command.split[0] 
+			print "error in command", command
 		
 
 #storage class for default server properties
