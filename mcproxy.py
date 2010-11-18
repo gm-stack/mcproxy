@@ -146,12 +146,17 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.clientqueue = Queue()
 		
 		# Server Socket
+		#preserv = "70.138.82.67"
+		#preserv = "craft.minestick.com"
 		#preserv = "mccloud.is-a-chef.com"
-		preserv = "60.226.115.245"
+		#preserv = "60.226.115.245"
 		#preserv = 'simplicityminecraft.com'
 		
-		host = (preserv if len(sys.argv) < 2 else sys.argv[1])
+		#host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 		# make it pick one from: http://servers.minecraftforum.net/
+		
+		host = serverprops.gui['server'].text()
+		
 		port = 25565
 		print("Connecting to %s..." % host)	
 		serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

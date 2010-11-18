@@ -70,14 +70,14 @@ def addtoinv(serverprops, command):
 			if command[1] in items.id2underName:
 				itemtype = items.id2underName[command[1]]
 				haveitem = 1
-			if command[1] in items.item2underName:
+			elif command[1] in items.item2underName:
 				itemtype = items.item2underName[command[1]]
 				haveitem = 1
-			else:
-				print "Unknown item"
 		if haveitem:
 			packet = { 'itemtype': itemtype, 'amount': amount, 'life': 0}
 			serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
+		else:
+			print "unknown item"
 
 def testchat(serverprops, command):
 	packet = { 'message': 'lol'}

@@ -46,6 +46,10 @@ class MainWindow(QtGui.QWidget):
 		grid.setSpacing(10)
 		
 		# add player info
+		grid.addWidget(QtGui.QLabel('Server:'),0,0)
+		gui['server'] = QtGui.QLineEdit()
+		grid.addWidget(gui['server'],0,1)
+		
 		grid.addWidget(QtGui.QLabel('Current Time'), 1, 0)
 		grid.addWidget(QtGui.QLabel('Current Position'), 2, 0)
 		grid.addWidget(QtGui.QLabel('Player Angle'), 3, 0)
@@ -120,7 +124,7 @@ class MainWindow(QtGui.QWidget):
 		hookgrid.addWidget(gui['deactivate'],6,1)
 		QtCore.QObject.connect(gui['activate'], QtCore.SIGNAL("clicked()"), self.activateHook)
 		QtCore.QObject.connect(gui['deactivate'], QtCore.SIGNAL("clicked()"), self.deactivateHook)
-		grid.addLayout(hookgrid,1,2,5,2)
+		grid.addLayout(hookgrid,0,2,5,2)
 		
 		# set window layout to the grid
 		self.setLayout(grid)
