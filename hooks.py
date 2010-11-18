@@ -44,6 +44,10 @@ def spawnHook(packetid, packet, serverprops):
 	gui.playerDataUpdate(serverprops)
 	positioning.loadWaypoints(serverprops)
 
+def overridePlayerPos(packetid, packet, serverprops):
+	if packet['dir'] == 's2c':
+		return {}
+
 current_inv = {}
 def inventoryTracker(packetid, packet, serverprops):
 	if packet['type']==1:
@@ -55,8 +59,9 @@ namedhooks = {
 	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
 	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
 	'inventoryTracker':	{ 'func': inventoryTracker,	'packet': 'inventory'},
-	'timeChangeHook': {'func': timeChangeHook, 'packet': 'time'},
-	'spawnPosition': {'func': spawnHook, 'packet': 'spawnposition'},
+	'timeChangeHook': {'func': timeChangeHook, 		'packet': 'time'},
+	'spawnPosition': {'func': spawnHook, 			'packet': 'spawnposition'},
+	'overridePlayerPos': {'func':overridePlayerPos, 'packet': 'playermovelook'},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])

@@ -308,6 +308,11 @@ decoders = {
 							('y', nbt.TAG_Int),
 							('z', nbt.TAG_Int)	])]	},
 	
+	0x07: {	'name':'useent', 
+			'hooks': [],
+			'format': [od([	('User', nbt.TAG_Int),
+							('Target', nbt.TAG_Int)	])]	},
+	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
 			'decoders': [decodeFlying], 
@@ -444,6 +449,13 @@ decoders = {
 							('rotation',	nbt.TAG_Byte),
 							('pitch',		nbt.TAG_Byte),])] },
 	
+	0x1C: { 'name':'entvelocity',
+			'hooks': [],
+			'format': [od([	('uniqueID',	nbt.TAG_Int),
+							('x',			nbt.TAG_Short),
+							('y',			nbt.TAG_Short),
+							('z',			nbt.TAG_Short),])] },
+	
 	0x1D: {	'name':'destroyent',		
 			'decoders': [decodeDestroyEntity],		
 			'hooks': [],
@@ -488,7 +500,11 @@ decoders = {
 							('z',			nbt.TAG_Int),
 							('rotation',	nbt.TAG_Byte),
 							('pitch',		nbt.TAG_Byte),])] },
-							
+	
+	0x27: {	'name':'attachent',
+			'hooks': [],
+			'format': [od([	('entID', 		nbt.TAG_Int),
+							('vehicleID',	nbt.TAG_Int),])] },
 	#map
 	
 	0x32: {	'name':'prechunk',

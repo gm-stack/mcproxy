@@ -59,6 +59,8 @@ def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
 			if modpacket == None: # if run_hooks returns none, the packet was not modified
 				packet_info(packetid, packet, buff, serverprops)
 				buff.write(packetbytes)
+			elif modpacket == {}: # if an empty dict, drop the packet
+				pass
 			else:
 				packet_info(packetid, modpacket, buff, serverprops)
 				buff.write(mcpackets.encode(dir,packetid,modpacket))
@@ -144,7 +146,9 @@ def startNetworkSockets(serverprops):
 		serverprops.comms.clientqueue = Queue()
 		
 		# Server Socket
-		preserv = 'simplicityminecraft.com' ##'211.31.18.197'#
+		#preserv = "mccloud.is-a-chef.com"
+		preserv = "60.226.115.245"
+		#preserv = 'simplicityminecraft.com'
 		
 		host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 		# make it pick one from: http://servers.minecraftforum.net/
