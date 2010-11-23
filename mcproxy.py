@@ -109,18 +109,19 @@ def ishell(serverprops):
 			commands.runCommand(serverprops,command)
 		except Exception as e:
 			traceback.print_exc()
-			print "error in command", command.split[0] 
+			print "error in command", command[0] 
 		
 
 #storage class for default server properties
 class serverprops():
 	dump_packets = True
 	dumpfilter = True
-	filterlist = [0x01, 0x02, 0x03, 0xFF]
+	filterlist = [0x01, 0x02, 0xFF]
 	hexdump = False
 	screen = None
 	playerdata = {}
 	playerdata_lock = RLock()
+	players = {}
 	gui = {}
 	waypoint = {}
 	currentwp = ""

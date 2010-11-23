@@ -48,6 +48,14 @@ def decodeMultiBlockChange(buffer):
 	packet['meta'] = buffer.read(packet['size'])
 	return packet
 
+def decodeComplexEntity(buffer):
+	return {
+		'x':		nbt.TAG_Int(buffer=buffer).value,
+		'y':		nbt.TAG_Short(buffer=buffer).value,
+		'z':		nbt.TAG_Int(buffer=buffer).value,
+		'payload':	nbt.TAG_Byte_Array(buffer=buffer, lentype=nbt.TAG_Short).value, # size is a short!
+		}
+	
 # name is name of packet
 # decoders is a set of functions which define specialty decoders
 # encoders is a set of functions which define specialty encoders
@@ -88,8 +96,7 @@ decoders = {
 	
 	0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
 	
-	0x06: {	'name':'spawnposition', 
-			'decoders': [decodeSpawnPosition],
+	0x06: {	'name':'spawnposition',
 			'hooks': [],
 			'format': [od([	('x', nbt.TAG_Int),
 							('y', nbt.TAG_Int),
@@ -102,12 +109,10 @@ decoders = {
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
-			'decoders': [decodeFlying], 
 			'hooks': [], 
 			'format': [od([	('flying', 	nbt.TAG_Bool), ])] },
 	
 	0x0B: {	'name':'playerposition',
-			'decoders': [decodePlayerPosition],	
 			'hooks': [],
 			'format': [od([	('x',		nbt.TAG_Double),
 							('y',		nbt.TAG_Double),
@@ -116,14 +121,12 @@ decoders = {
 							('flying',	nbt.TAG_Bool),])] },
 						
 	0x0C: {	'name':'playerlook',
-			'decoders': [decodePlayerLook],	
 			'hooks': [],
 			'format': [od([	('rotation',		nbt.TAG_Float),
 							('pitch',			nbt.TAG_Float),
 							('flying',			nbt.TAG_Bool),])] },
 						
 	0x0D: {	'name':'playermovelook',
-			'decoders': [decodeSPlayerMoveAndLook, decodeCPlayerMoveAndLook],
 			'hooks': [],
 			'format': [	od([	('x',			nbt.TAG_Double),
 								('y',			nbt.TAG_Double),
@@ -144,7 +147,6 @@ decoders = {
 	# world interaction packets
 	
 	0x0E: {	'name':'blockdig',
-			'decoders': [decodeBlockDig],
 			'hooks': [],
 			'format': [od([	('status',			nbt.TAG_Byte),
 							('x',				nbt.TAG_Int),
@@ -154,7 +156,6 @@ decoders = {
 					
 						
 	0x0F: {	'name':'blockplace',
-			'decoders': [decodeBlockPlace],		
 			'hooks': [],
 			'format': [od([	('type',			nbt.TAG_Short),
 							('x',				nbt.TAG_Int),
@@ -165,28 +166,24 @@ decoders = {
 	#more playerstate
 	
 	0x10: {	'name':'blockitemswitch',
-			'decoders': [decodeItemSwitch],
 	 		'hooks': [],
 	 		'format': [od([	('entityID',		nbt.TAG_Int),
 							('itemID',			nbt.TAG_Short),])] },
 	
 	0x11: {	'name':'addtoinv',
-			'decoders': [decodeSAddToInventory],
 			'hooks': [],
 			'format': [od([	('itemtype',	nbt.TAG_Short),
 							('amount',		nbt.TAG_Byte),
 							('life',		nbt.TAG_Short),])] },
 	
 	0x12: {	'name':'armanim',
-			'decoders': [decodeAnimateArm],
 			'hooks': [],
 			'format': [od([	('entityID',	nbt.TAG_Int),
 							('forward?',		nbt.TAG_Bool),])] },
 		
 	#entities
 	
-	0x14: {	'name':'namedentspawn',		
-			'decoders': [decodeNamedEntitySpawn],	
+	0x14: {	'name':'namedentspawn',
 			'hooks': [],
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('playerName',	nbt.TAG_String),
@@ -197,8 +194,7 @@ decoders = {
 							('pitch',		nbt.TAG_Byte),
 							('currentItem',	nbt.TAG_Short),])] },
 								
-	0x15: {	'name':'pickupspawn',		
-			'decoders': [decodePickupSpawn],		
+	0x15: {	'name':'pickupspawn',
 			'hooks': [],
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('item',		nbt.TAG_Short),
@@ -210,14 +206,12 @@ decoders = {
 							('pitch',		nbt.TAG_Byte),
 							('roll',		nbt.TAG_Byte),])] },
 	
-	0x16: {	'name':'collectitem',		
-			'decoders': [decodeCollectItem],		
+	0x16: {	'name':'collectitem',
 			'hooks': [],
 			'format': [od([	('collectedItemID', nbt.TAG_Int),
 							('itemCollectorID', nbt.TAG_Int),])] },
 	
-	0x17: {	'name':'vehiclespawn',		
-			'decoders': [decodeVehicleSpawn],		
+	0x17: {	'name':'vehiclespawn',
 			'hooks': [],
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('type',		nbt.TAG_Byte),
@@ -225,8 +219,7 @@ decoders = {
 							('y',			nbt.TAG_Int),
 							('z',			nbt.TAG_Int),])] },
 	
-	0x18: {	'name':'mobspawn',			
-			'decoders': [decodeMobSpawn],			
+	0x18: {	'name':'mobspawn',
 			'hooks': [],
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('mobtype',		nbt.TAG_Byte),
@@ -243,18 +236,15 @@ decoders = {
 							('y',			nbt.TAG_Short),
 							('z',			nbt.TAG_Short),])] },
 	
-	0x1D: {	'name':'destroyent',		
-			'decoders': [decodeDestroyEntity],		
+	0x1D: {	'name':'destroyent',
 			'hooks': [],
 			'format': [od([	('uniqueID', 	nbt.TAG_Int),])] },
 	
-	0x1E: {	'name':'entity',			
-			'decoders': [decodeEntity],				
+	0x1E: {	'name':'entity',
 			'hooks': [],
 			'format': [od([	('uniqueID', 	nbt.TAG_Int),])] },
 	
-	0x1F: {	'name':'relentmove',		
-			'decoders': [decodeRelativeEntityMove],	
+	0x1F: {	'name':'relentmove',
 			'hooks': [],
 			'format': [od([	('uniqueID', 	nbt.TAG_Int),
 							('x',			nbt.TAG_Byte),
@@ -262,14 +252,12 @@ decoders = {
 							('z',			nbt.TAG_Byte),])] },
 	
 	0x20: {	'name':'entitylook',
-			'decoders': [decodeEntityLook],
 			'hooks': [],
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('rotation',	nbt.TAG_Byte),
 							('pitch',		nbt.TAG_Byte),])] },
 							
 	0x21: {	'name':'relentmovelook',
-			'decoders': [decodeEntityMoveAndLook],
 			'hooks': [],
 			'format': [od([	('uniqueID', 	nbt.TAG_Int),
 							('x',			nbt.TAG_Byte),
@@ -279,7 +267,6 @@ decoders = {
 							('pitch',		nbt.TAG_Byte),])] },
 							
 	0x22: {	'name':'enttele',
-			'decoders': [decodeEntityTeleport],	
 			'hooks': [],
 			'format': [od([	('uniqueID', 	nbt.TAG_Int),
 							('x',			nbt.TAG_Int),
@@ -295,14 +282,12 @@ decoders = {
 	#map
 	
 	0x32: {	'name':'prechunk',
-			'decoders': [decodePreChunk],			
 			'hooks': [],
 			'format': [od([	('x',			nbt.TAG_Int),
 							('z',			nbt.TAG_Int),
 							('rotation',	nbt.TAG_Byte),])] },
 							
 	0x33: {	'name':'mapchunk',
-			'decoders': [decodeMapChunk],			
 			'hooks': [],
 			'format': [od([	('x',		nbt.TAG_Int),
 							('y',		nbt.TAG_Short),
@@ -318,7 +303,6 @@ decoders = {
 			'hooks': []},
 	
 	0x35: {	'name':'blockchange',
-			'decoders': [decodeBlockChange],
 			'hooks': [],
 			'format': [od([	('x',	nbt.TAG_Int),
 							('y',	nbt.TAG_Byte),
@@ -335,7 +319,6 @@ decoders = {
 	#disconnect
 	
 	0xFF: {	'name':'disconnect',
-			'decoders': [decodeDisconnect],
 			'hooks': [],
 			'format': [od([	('reason', nbt.TAG_String),])] },
 }

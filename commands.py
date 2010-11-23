@@ -1,4 +1,5 @@
 import hooks, mcpackets, items
+import mcpackets
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets
@@ -114,9 +115,9 @@ def inventory(serverprops, command):
 			if not hooks.current_inv[slot]:
 				hooks.current_inv[slot] = {'itemid': itemid, 'count': count, 'health': 0}
 				packet = {'type':1, 'count':len(hooks.current_inv), 'items':hooks.current_inv}
-				encpacket = mcpackets.encode(mcpackets.name_to_id['inventory'], packet)
-				serverqueue.put(encpacket)
-				clientqueue.put(encpacket)
+				encpacket = mcpackets.encode('c2s', mcpackets.name_to_id['inventory'], packet)
+				serverprops.comms.serverqueue.put(encpacket)
+				serverprops.comms.clientqueue.put(encpacket)
 				print("added item %i to inventory slot %i" %(itemid, slot))
 				break
 	if subcommand == 'list':
@@ -124,6 +125,40 @@ def inventory(serverprops, command):
 			if hooks.current_inv[slot]:
 				print ("%i: %ix%s" % (slot, hooks.current_inv[slot]['count'], hooks.current_inv[slot]['itemid']))
 
+def fill(serverprops, command):
+	import math
+	if len(command)==1:
+		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
+	if len(command) >= 3:
+		try:
+			otherplayer = [id for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
+		except:
+			print "cannot find player %s" % command[1]
+			return
+		try:
+			block = int(command[2])
+		except:
+			print "%s is not an integer. cannot make block." % command[2]
+			return
+		
+		my_x = int(math.floor(serverprops.playerdata['location'][0])); their_x = int(math.floor(serverprops.players[otherplayer]['x']/32))
+		my_y = int(math.floor(serverprops.playerdata['location'][1])); their_y = int(math.floor(serverprops.players[otherplayer]['y']/32))
+		my_z = int(math.floor(serverprops.playerdata['location'][2])); their_z = int(math.floor(serverprops.players[otherplayer]['z']/32))
+		
+		if my_x < their_x: x_range = xrange(my_x, their_x)
+		else:              x_range = xrange(my_x, their_x, -1)
+		if my_y < their_y: y_range = xrange(my_y, their_y)
+		else:              y_range = xrange(my_y, their_y, -1)
+		if my_z < their_z: z_range = xrange(my_z, their_z)
+		else:              z_range = xrange(my_z, their_z, -1)
+		
+		for x in x_range:
+			for y in y_range:
+				for z in z_range:
+					packet = {'dir':'c2s', 'type':block, 'x':x-1, 'y':y, 'z':z, 'direction': 5} #direction: +X
+					encpacket = mcpackets.encode('c2s', 0x0F, packet)
+					serverprops.comms.serverqueue.put(encpacket)
+					
 commandlist = {
 	'dumpPackets':dumpPackets,
 	'filter':filter,
@@ -135,6 +170,7 @@ commandlist = {
 	'testpos':testpos,
 	'inventory':inventory,
 	'movespawn':movespawn,
+	'fill':fill,
 }
 
 def runCommand(serverprops,command):
