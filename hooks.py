@@ -53,24 +53,31 @@ def inventoryTracker(packetid, packet, serverprops):
 	if packet['type']==1:
 		current_inv = packet['items']
 	
+playerpositions = []
+def playertracking(packetid, packet, serverprops):
+	if packetid == 0x14: #named entity spawn
+		pass
+	
 namedhooks = {
-	'timeHook': 		{ 'func': timeHook, 		'packet': 'time'},
-	'playerPosHook': 	{ 'func': playerPosHook,	'packet': 'playerposition'},
-	'playerLookHook':	{ 'func': playerLookHook,	'packet': 'playerlook'},
-	'viewCustomEntities':{'func':viewCustomEntities,'packet': 'complexent'},
-	'inventoryTracker':	{ 'func': inventoryTracker,	'packet': 'inventory'},
-	'timeChangeHook': {'func': timeChangeHook, 		'packet': 'time'},
-	'spawnPosition': {'func': spawnHook, 			'packet': 'spawnposition'},
-	'overridePlayerPos': {'func':overridePlayerPos, 'packet': 'playermovelook'},
+	'timeHook': 		{'func': timeHook, 		'packets': ['time']},
+	'playerPosHook': 	{'func': playerPosHook,	'packets': ['playerposition']},
+	'playerLookHook':	{'func': playerLookHook,	'packets': ['playerlook']},
+	'viewCustomEntities':{'func': viewCustomEntities,'packets': ['complexent']},
+	'inventoryTracker':	{'func': inventoryTracker,	'packets': ['inventory']},
+	'timeChangeHook':	{'func': timeChangeHook, 		'packets': ['time']},
+	'spawnPosition':	{'func': spawnHook, 			'packets': ['spawnposition']},
+	'overridePlayerPos':{'func': overridePlayerPos,  'packets': ['playermovelook']},
+	'playertracking':	{'func': playertracking, 'packets': ['namedentspawn']}
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
 
 def addHook(serverprops,hookname):
 	if hookname in namedhooks:
-		packet = namedhooks[hookname]['packet']
+		packets = namedhooks[hookname]['packets']
 		hookclass = namedhooks[hookname]['func']
-		mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
+		for packet in packets:
+			mcpackets.decoders[mcpackets.name_to_id[packet]]['hooks'].append(hookclass)
 		gui.removeFromMenu(serverprops.gui['hooklist'],hookname)
 		serverprops.gui['hookactive'].addItem(hookname)
 	else:
