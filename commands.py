@@ -145,19 +145,33 @@ def fill(serverprops, command):
 		my_y = int(math.floor(serverprops.playerdata['location'][1])); their_y = int(math.floor(serverprops.players[otherplayer]['y']/32))
 		my_z = int(math.floor(serverprops.playerdata['location'][2])); their_z = int(math.floor(serverprops.players[otherplayer]['z']/32))
 		
-		if my_x < their_x: x_range = xrange(my_x, their_x)
-		else:              x_range = xrange(my_x, their_x, -1)
-		if my_y < their_y: y_range = xrange(my_y, their_y)
-		else:              y_range = xrange(my_y, their_y, -1)
-		if my_z < their_z: z_range = xrange(my_z, their_z)
-		else:              z_range = xrange(my_z, their_z, -1)
+		if my_x <= their_x: x_range = xrange(my_x, their_x+1)
+		else:              x_range = xrange(my_x, their_x-1, -1)
+		if my_y <= their_y: y_range = xrange(my_y, their_y+1)
+		else:              y_range = xrange(my_y, their_y-1, -1)
+		if my_z <= their_z: z_range = xrange(my_z, their_z+1)
+		else:              z_range = xrange(my_z, their_z-1, -1)
 		
 		for x in x_range:
 			for y in y_range:
 				for z in z_range:
-					packet = {'dir':'c2s', 'type':block, 'x':x-1, 'y':y, 'z':z, 'direction': 5} #direction: +X
-					encpacket = mcpackets.encode('c2s', 0x0F, packet)
+					
+					#remove block
+					packet = {'dir':'c2s', 'status':0, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
 					serverprops.comms.serverqueue.put(encpacket)
+					packet = {'dir':'c2s', 'status':1, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
+					serverprops.comms.serverqueue.put(encpacket)
+					packet = {'dir':'c2s', 'status':3, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
+					serverprops.comms.serverqueue.put(encpacket)
+					
+					if block!=0:
+						#place block
+						packet = {'dir':'c2s', 'type':block, 'x':x-1, 'y':y, 'z':z, 'direction': 5} #direction: +X
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
 					
 commandlist = {
 	'dumpPackets':dumpPackets,

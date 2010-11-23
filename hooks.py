@@ -57,17 +57,20 @@ def playertracking(packetid, packet, serverprops):
 	if packetid == 0x14: #named entity spawn
 		serverprops.players[packet['uniqueID']] = packet
 		
-	if packetid == 0x1F or packetid == 0x21: #relative entity move or relent movelook
-		serverprops.players[packet['uniqueID']]['x']+=packet['x']
-		serverprops.players[packet['uniqueID']]['y']+=packet['y']
-		serverprops.players[packet['uniqueID']]['z']+=packet['z']
-	
-	if packetid == 0x22: #entity teleport
-		serverprops.players[packet['uniqueID']].update(packet)
+	if 	packet['uniqueID'] in serverprops.players.keys():
+		if packetid == 0x1F or packetid == 0x21: #relative entity move or relent movelook
+			serverprops.players[packet['uniqueID']]['x']+=packet['x']
+			serverprops.players[packet['uniqueID']]['y']+=packet['y']
+			serverprops.players[packet['uniqueID']]['z']+=packet['z']
 		
-	if packetid == 0x1D: #entity destroy
-		try: serverprops.players.pop(packet['uniqueID'])
-		except: pass
+		if packetid == 0x22: #entity teleport
+			serverprops.players[packet['uniqueID']].update(packet)
+			
+		if packetid == 0x1D: #entity destroy
+			try: serverprops.players.pop(packet['uniqueID'])
+			except: pass
+	
+		
 namedhooks = {
 	'timeHook': 		{'func': timeHook, 		'packets': ['time']},
 	'playerPosHook': 	{'func': playerPosHook,	'packets': ['playerposition']},
@@ -77,7 +80,7 @@ namedhooks = {
 	'timeChangeHook':	{'func': timeChangeHook, 		'packets': ['time']},
 	'spawnPosition':	{'func': spawnHook, 			'packets': ['spawnposition']},
 	'overridePlayerPos':{'func': overridePlayerPos,  'packets': ['playermovelook']},
-	'playertracking':	{'func': playertracking, 'packets': ['namedentspawn', 'destroyent']}
+	'playertracking':	{'func': playertracking, 'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']}
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
