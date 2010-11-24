@@ -127,6 +127,7 @@ def inventory(serverprops, command):
 
 def fill(serverprops, command):
 	import math
+	import time
 	if len(command)==1:
 		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
 	if len(command) >= 3:
@@ -153,32 +154,33 @@ def fill(serverprops, command):
 		else:              z_range = xrange(my_z, their_z-1, -1)
 		
 		for x in x_range:
-			for y in y_range:
-				for z in z_range:
+			for z in z_range:
+				for y in y_range:
 					
-					#remove block
-					packet = {'dir':'c2s', 'status':0, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
-					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
-					serverprops.comms.serverqueue.put(encpacket)
-					packet = {'dir':'c2s', 'status':1, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
-					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
-					serverprops.comms.serverqueue.put(encpacket)
-					packet = {'dir':'c2s', 'status':3, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
-					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
-					serverprops.comms.serverqueue.put(encpacket)
+#					#remove block
+#					packet = {'dir':'c2s', 'status':0, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+#					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
+#					serverprops.comms.serverqueue.put(encpacket)
+#					packet = {'dir':'c2s', 'status':1, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+#					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
+#					serverprops.comms.serverqueue.put(encpacket)
+#					packet = {'dir':'c2s', 'status':3, 'x':x, 'y':y, 'z':z, 'direction': 1} #direction: +X
+#					encpacket = mcpackets.encode('c2s', 0x0E, packet) #block dig
+#					serverprops.comms.serverqueue.put(encpacket)
 					
 					if block!=0:
 						#place block
-						packet = {'dir':'c2s', 'type':block, 'x':x-1, 'y':y, 'z':z, 'direction': 5} #direction: +X
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
+						
+				time.sleep(0.01)
 					
 commandlist = {
 	'dumpPackets':dumpPackets,
 	'filter':filter,
 	'hexdump':hexdump,
 	'help':help,
-#	'hook':hook,
 	'addtoinv':addtoinv,
 	'testchat':testchat,
 	'testpos':testpos,
