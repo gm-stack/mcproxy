@@ -100,12 +100,20 @@ decoders = {
 			'hooks': [],
 			'format': [od([	('x', nbt.TAG_Int),
 							('y', nbt.TAG_Int),
-							('z', nbt.TAG_Int)	])]	},
+							('z', nbt.TAG_Int)	])],	},
 	
 	0x07: {	'name':'useent', 
 			'hooks': [],
 			'format': [od([	('User', nbt.TAG_Int),
-							('Target', nbt.TAG_Int)	])]	},
+							('Target', nbt.TAG_Int)	])],	},
+	
+	0x08: { 'name': 'health',
+			'hooks': [],
+			'format': [od([ ('health', nbt.TAG_Byte), ])],}, #health: 0-20
+	
+	0x09: { 'name':'respawn',
+			'hooks':'',
+			'format': [{}, od([ ('unknown', nbt.TAG_Byte), ])], },
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
@@ -275,6 +283,11 @@ decoders = {
 							('rotation',	nbt.TAG_Byte),
 							('pitch',		nbt.TAG_Byte),])] },
 	
+	0x26: {	'name':'mobdeath?',
+			'hooks': [],
+			'format': [od([ ('unknown1', nbt.TAG_Int),
+							('unknown2', nbt.TAG_Byte),])] },
+	
 	0x27: {	'name':'attachent',
 			'hooks': [],
 			'format': [od([	('entID', 		nbt.TAG_Int),
@@ -356,21 +369,21 @@ def encode(direction, packetID, packet):
 	#write in the packet id
 	nbt.TAG_ByteU(value=packetID)._render_buffer(outbuff)
 	
-	#encode by format description
-	if packet_desc['format']:
-		format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
-		#render packet to buffer
-		for field in format:
-			format[field](value=packet[field])._render_buffer(outbuff)
+	if not (packet.has_key('dir') and packet['dir']==None):
+		#encode by format description
+		if packet_desc['format']:
+			format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
+			#render packet to buffer
+			for field in format:
+				format[field](value=packet[field])._render_buffer(outbuff)
+				
+		#revert to specialised encoder
+		elif packet_desc['encoders']:
+			encoder = packet_desc['encoders'][{"s2c":0,"c2s":-1}[direction]]
+			encoder(buffer, packet)
 			
-	#revert to specialised encoder
-	elif packet_desc['encoders']:
-		encoder = packet_desc['encoders'][{"s2c":0,"c2s":-1}[direction]]
-		encoder(buffer, packet)
-		
-	#i am error
-	else:
-		print("unable to render packetID", packetID)
+		#i am error
+		else:
+			print("unable to render packetID", packetID)
 	
-	outbuff.seek(0)
-	return outbuff.read()
+	return outbuff.getvalue()

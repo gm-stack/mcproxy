@@ -64,8 +64,6 @@ def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
 			else:
 				packet_info(packetid, modpacket, buff, serverprops)
 				buff.write(mcpackets.encode(dir,packetid,modpacket))
-				#print "changed packet"
-				#packet_info(packetid, modpacket, buff, serverprops)
 			
 			#send all items in the outgoing queue
 			while not outqueue.empty():
@@ -77,6 +75,10 @@ def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
 		print( dir, "connection quit unexpectedly:")
 		print e
 		return
+	
+	#close the other socket
+	outsocket.close()
+	insocket.close()
 
 def run_hooks(packetid, packet, serverprops):
 	ret = None
@@ -135,51 +137,51 @@ def startNetworkSockets(serverprops):
 	#====================================================================================#
 		
 	while True:
-		# Client Socket
-		listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		listensocket.bind(('127.0.0.1', 25565))
-		listensocket.listen(1)
-		print("Waiting for connection...")
-		
-		clientsocket, addr = listensocket.accept()
-		print("Connection accepted from %s" % str(addr))
-		serverprops.comms.clientqueue = Queue()
-		
-		# Server Socket
-		#preserv = "70.138.82.67"
-		#preserv = "craft.minestick.com"
-		#preserv = "mccloud.is-a-chef.com"
-		#preserv = "60.226.115.245"
-		#preserv = 'simplicityminecraft.com'
-		
-		#host = (preserv if len(sys.argv) < 2 else sys.argv[1])
-		# make it pick one from: http://servers.minecraftforum.net/
-		
-		host = serverprops.gui['server'].text()
-		
-		port = 25565
-		print("Connecting to %s..." % host)	
-		serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		serversocket.connect((host,port))
-		serverprops.comms.serverqueue = Queue()
-		
-		#start processing threads	
-		serverthread = Thread(target=sock_foward, name="ClientToServer", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
-		serverthread.setDaemon(True)
-		serverthread.start()
-		
-		clientthread = Thread(target=sock_foward, name="ServerToClient", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
-		clientthread.setDaemon(True)
-		clientthread.start()
-		
-		#wait for something bad to happen :(
-		serverthread.join()
-		clientthread.join()
-		
-		#thread.start_new_thread(sock_foward,("c2s", clientsocket, serversocket, clientqueue, serverqueue, serverprops))
-		#thread.start_new_thread(sock_foward,("s2c", serversocket, clientsocket, serverqueue, clientqueue, serverprops))
-
+		try:
+			# Client Socket
+			listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			listensocket.bind(('127.0.0.1', 25565))
+			listensocket.listen(1)
+			print("Waiting for connection...")
+			
+			clientsocket, addr = listensocket.accept()
+			print("Connection accepted from %s" % str(addr))
+			serverprops.comms.clientqueue = Queue()
+			
+			# Server Socket
+			#preserv = "70.138.82.67"
+			#preserv = "craft.minestick.com"
+			#preserv = "mccloud.is-a-chef.com"
+			#preserv = "60.226.115.245"
+			#preserv = 'simplicityminecraft.com'
+			
+			#host = (preserv if len(sys.argv) < 2 else sys.argv[1])
+			# make it pick one from: http://servers.minecraftforum.net/
+			
+			host = serverprops.gui['server'].text()
+			
+			port = 25565
+			print("Connecting to %s..." % host)	
+			serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			serversocket.connect((host,port))
+			serverprops.comms.serverqueue = Queue()
+			
+			#start processing threads	
+			serverthread = Thread(target=sock_foward, name="ClientToServer", args=("c2s", clientsocket, serversocket, serverprops.comms.serverqueue, serverprops))
+			serverthread.setDaemon(True)
+			serverthread.start()
+			
+			clientthread = Thread(target=sock_foward, name="ServerToClient", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
+			clientthread.setDaemon(True)
+			clientthread.start()
+			
+			#wait for something bad to happen :(
+			serverthread.join()
+			clientthread.join()
+			
+		except:
+			pass
 
 if __name__ == "__main__":
 	#====================================================================================#

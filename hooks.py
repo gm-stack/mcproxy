@@ -4,8 +4,7 @@
 # serverprops	class				see mcproxy.py for details
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
-
-import positioning, gui, mcpackets
+import positioning, gui, mcpackets, commands
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']
@@ -56,31 +55,45 @@ def inventoryTracker(packetid, packet, serverprops):
 def playertracking(packetid, packet, serverprops):
 	if packetid == 0x14: #named entity spawn
 		serverprops.players[packet['uniqueID']] = packet
+		print "PlayerTracking: %s appeared!" % packet['playerName']
 		
 	if 	packet['uniqueID'] in serverprops.players.keys():
-		if packetid == 0x1F or packetid == 0x21: #relative entity move or relent movelook
-			serverprops.players[packet['uniqueID']]['x']+=packet['x']
-			serverprops.players[packet['uniqueID']]['y']+=packet['y']
-			serverprops.players[packet['uniqueID']]['z']+=packet['z']
+		player = serverprops.players[packet['uniqueID']]
+		if packetid == 0x1F or packetid == 0x21:
+			player['x']+=packet['x']
+			player['y']+=packet['y']
+			player['z']+=packet['z']
+			print "PlayerTracking: %s moved" % player['playerName']
 		
 		if packetid == 0x22: #entity teleport
 			serverprops.players[packet['uniqueID']].update(packet)
+			print "PlayerTracking: %s teleported" % player['playerName']
 			
 		if packetid == 0x1D: #entity destroy
-			try: serverprops.players.pop(packet['uniqueID'])
-			except: pass
+			try: 
+				serverprops.players.pop(packet['uniqueID'])
+				print "PlayerTracking: %s left :(" % player['playerName']
+			except KeyError: pass
 	
-		
+def chatCommand(packetid, packet, serverprops):
+	if packet['dir'] == 'c2s':
+		if packet['message'].startswith('#'):
+			command = packet['message'][1:].split(" ")
+			commands.runCommand(serverprops,command)
+			packet['dir'] = None
+			return packet
+			
 namedhooks = {
-	'timeHook': 		{'func': timeHook, 		'packets': ['time']},
-	'playerPosHook': 	{'func': playerPosHook,	'packets': ['playerposition']},
+	'timeHook': 		{'func': timeHook, 			'packets': ['time']},
+	'playerPosHook': 	{'func': playerPosHook,		'packets': ['playerposition']},
 	'playerLookHook':	{'func': playerLookHook,	'packets': ['playerlook']},
 	'viewCustomEntities':{'func': viewCustomEntities,'packets': ['complexent']},
 	'inventoryTracker':	{'func': inventoryTracker,	'packets': ['inventory']},
-	'timeChangeHook':	{'func': timeChangeHook, 		'packets': ['time']},
-	'spawnPosition':	{'func': spawnHook, 			'packets': ['spawnposition']},
-	'overridePlayerPos':{'func': overridePlayerPos,  'packets': ['playermovelook']},
-	'playertracking':	{'func': playertracking, 'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']}
+	'timeChangeHook':	{'func': timeChangeHook, 	'packets': ['time']},
+	'spawnPosition':	{'func': spawnHook, 		'packets': ['spawnposition']},
+	'overridePlayerPos':{'func': overridePlayerPos,	'packets': ['playermovelook']},
+	'playertracking':	{'func': playertracking,	'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']},
+	'chatcommands':		{'func': chatCommand,		'packets': ['chat']}
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
@@ -112,3 +125,4 @@ def setupInitialHooks(serverprops):
 	addHook(serverprops,'playerLookHook')
 	addHook(serverprops,'spawnPosition')
 	addHook(serverprops,'playertracking')
+	addHook(serverprops,'chatcommands')
