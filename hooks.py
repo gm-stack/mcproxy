@@ -47,6 +47,10 @@ def overridePlayerPos(packetid, packet, serverprops):
 	if packet['dir'] == 's2c':
 		return {}
 
+def overridePlayerInventory(packetid, packet, serverprops):
+	if packet['dir'] == 'c2s':
+		return {}
+
 current_inv = {}
 def inventoryTracker(packetid, packet, serverprops):
 	if packet['type']==1:
@@ -93,7 +97,8 @@ namedhooks = {
 	'spawnPosition':	{'func': spawnHook, 		'packets': ['spawnposition']},
 	'overridePlayerPos':{'func': overridePlayerPos,	'packets': ['playermovelook']},
 	'playertracking':	{'func': playertracking,	'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']},
-	'chatcommands':		{'func': chatCommand,		'packets': ['chat']}
+	'chatcommands':		{'func': chatCommand,		'packets': ['chat']},
+	'overridePlayerInventory': {'func':overridePlayerInventory, 'packets': ['inventory']},	
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
