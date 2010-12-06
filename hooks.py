@@ -86,7 +86,11 @@ def chatCommand(packetid, packet, serverprops):
 			commands.runCommand(serverprops,command)
 			packet['dir'] = None
 			return packet
-			
+
+def invincible(packetid, packet, serverprops):
+	packet['health'] = 20
+	return packet
+
 namedhooks = {
 	'timeHook': 		{'func': timeHook, 			'packets': ['time']},
 	'playerPosHook': 	{'func': playerPosHook,		'packets': ['playerposition']},
@@ -98,7 +102,8 @@ namedhooks = {
 	'overridePlayerPos':{'func': overridePlayerPos,	'packets': ['playermovelook']},
 	'playertracking':	{'func': playertracking,	'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']},
 	'chatcommands':		{'func': chatCommand,		'packets': ['chat']},
-	'overridePlayerInventory': {'func':overridePlayerInventory, 'packets': ['inventory']},	
+	'overridePlayerInventory': {'func':overridePlayerInventory, 'packets': ['inventory']},
+	'invincible':		{'func': invincible,		'packets': ['health']},	
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
