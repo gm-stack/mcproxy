@@ -55,6 +55,22 @@ def decodeComplexEntity(buffer):
 		'z':		nbt.TAG_Int(buffer=buffer).value,
 		'payload':	nbt.TAG_Byte_Array(buffer=buffer, lentype=nbt.TAG_Short).value, # size is a short!
 		}
+
+def decodeExplosion(buffer):
+	packet = {
+		'x':		nbt.TAG_Double(buffer=buffer).value,
+		'y':		nbt.TAG_Double(buffer=buffer).value,
+		'z':		nbt.TAG_Double(buffer=buffer).value,
+		'unknown':	nbt.TAG_Float(buffer=buffer).value,
+		'numrecs':	nbt.TAG_Int(buffer=buffer).value,
+		'blocks':	[],
+		}
+	for num in range(packet['numrecs']):
+		x = nbt.TAG_Byte(buffer=buffer).value
+		y = nbt.TAG_Byte(buffer=buffer).value
+		z = nbt.TAG_Byte(buffer=buffer).value
+		packet['blocks'].append((x,y,z))
+	return packet
 	
 # name is name of packet
 # decoders is a set of functions which define specialty decoders
@@ -105,7 +121,8 @@ decoders = {
 	0x07: {	'name':'useent', 
 			'hooks': [],
 			'format': [od([	('User', nbt.TAG_Int),
-							('Target', nbt.TAG_Int)	])],	},
+							('Target', nbt.TAG_Int),
+							('Left Click', nbt.TAG_Byte)])],	},
 	
 	0x08: { 'name': 'health',
 			'hooks': [],
@@ -187,7 +204,7 @@ decoders = {
 	0x12: {	'name':'armanim',
 			'hooks': [],
 			'format': [od([	('entityID',	nbt.TAG_Int),
-							('forward?',		nbt.TAG_Bool),])] },
+							('Animate',		nbt.TAG_Byte),])] },
 		
 	#entities
 	
@@ -328,6 +345,11 @@ decoders = {
 	0x3B: {	'name':'complexent', 		
 			'decoders': [decodeComplexEntity],		
 			'hooks': []},
+	
+	0x3C: { 'name':'explosion',
+			'hooks':[],
+			'decoders': [decodeExplosion],
+			},
 	
 	#disconnect
 	

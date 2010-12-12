@@ -134,5 +134,5 @@ def setupInitialHooks(serverprops):
 	addHook(serverprops,'playerPosHook')
 	addHook(serverprops,'playerLookHook')
 	addHook(serverprops,'spawnPosition')
-	addHook(serverprops,'playertracking')
+	addHook(serverprops,'timeChangeHook')
 	addHook(serverprops,'chatcommands')
