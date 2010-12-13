@@ -59,7 +59,7 @@ def inventoryTracker(packetid, packet, serverprops):
 def playertracking(packetid, packet, serverprops):
 	if packetid == 0x14: #named entity spawn
 		serverprops.players[packet['uniqueID']] = packet
-		print "PlayerTracking: %s appeared!" % packet['playerName']
+		#print "PlayerTracking: %s appeared!" % packet['playerName']
 		
 	if 	packet['uniqueID'] in serverprops.players.keys():
 		player = serverprops.players[packet['uniqueID']]
@@ -67,16 +67,16 @@ def playertracking(packetid, packet, serverprops):
 			player['x']+=packet['x']
 			player['y']+=packet['y']
 			player['z']+=packet['z']
-			print "PlayerTracking: %s moved" % player['playerName']
+			#print "PlayerTracking: %s moved" % player['playerName']
 		
 		if packetid == 0x22: #entity teleport
 			serverprops.players[packet['uniqueID']].update(packet)
-			print "PlayerTracking: %s teleported" % player['playerName']
+			#print "PlayerTracking: %s teleported" % player['playerName']
 			
 		if packetid == 0x1D: #entity destroy
 			try: 
 				serverprops.players.pop(packet['uniqueID'])
-				print "PlayerTracking: %s left :(" % player['playerName']
+				#print "PlayerTracking: %s left :(" % player['playerName']
 			except KeyError: pass
 	
 def chatCommand(packetid, packet, serverprops):
@@ -136,3 +136,4 @@ def setupInitialHooks(serverprops):
 	addHook(serverprops,'spawnPosition')
 	addHook(serverprops,'timeChangeHook')
 	addHook(serverprops,'chatcommands')
+	addHook(serverprops, 'playertracking')

@@ -101,6 +101,7 @@ def movespawn(serverprops, command):
 	else:
 		print "Not enough arguments 'movespawn X Y Z' Relative to the map, NOT the player"
 
+
 def inventory(serverprops, command):
 	if len(command)==1:
 		print("syntax: inventory [add] [blocktype] [ammount] [inventory position]")
@@ -173,9 +174,30 @@ def fill(serverprops, command):
 						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
-						
-				time.sleep(0.01)
-					
+
+def entomb(serverprops, command):
+	if len(command) == 1:
+		print "syntax: entomb player blocktype"
+	if len(command) == 3:
+		try:
+			otherplayer = [props for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
+		except:
+			print "Cannot find player %s" % command[1]
+			return
+		try:
+			block = int(command[2])
+		except:
+			print "%s is not an integer, retard" % command[1]
+			return
+
+		for x in xrange(otherplayer['x'] -2 , otherplayer['x'] + 2):
+			for y in yrange(otherplayer['y'] -2, otherplayer['x'] + 4):
+				for z in zrange(otherplayer['z'] -2, otherplayer['z'] + 2):
+					if block!=0:
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y',y-1, 'z':z, 'direction': 1}
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
+
 commandlist = {
 	'dumpPackets':dumpPackets,
 	'filter':filter,
@@ -187,6 +209,7 @@ commandlist = {
 	'inventory':inventory,
 	'movespawn':movespawn,
 	'fill':fill,
+	'entomb':entomb,
 }
 
 def runCommand(serverprops,command):
