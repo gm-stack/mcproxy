@@ -189,10 +189,13 @@ def entomb(serverprops, command):
 		except:
 			print "%s is not an integer, retard" % command[1]
 			return
-
-		for x in xrange(otherplayer['x'] -2 , otherplayer['x'] + 2):
-			for y in xrange(otherplayer['y'] -2, otherplayer['x'] + 4):
-				for z in xrange(otherplayer['z'] -2, otherplayer['z'] + 2):
+		print otherplayer['x']
+		for x in xrange(otherplayer['x'] -2 , otherplayer['x'] + 3):
+			print 'x'
+			for y in xrange(otherplayer['y'] -2, otherplayer['y'] + 5):
+				print 'y'
+				for z in xrange(otherplayer['z'] -2, otherplayer['z'] + 3):
+					print 'z'
 					if block!=0:
 						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1}
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
