@@ -194,7 +194,7 @@ def entomb(serverprops, command):
 			for y in yrange(otherplayer['y'] -2, otherplayer['x'] + 4):
 				for z in zrange(otherplayer['z'] -2, otherplayer['z'] + 2):
 					if block!=0:
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y',y-1, 'z':z, 'direction': 1}
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1}
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
