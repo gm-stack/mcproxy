@@ -1,4 +1,4 @@
-import hooks, mcpackets, items
+import hooks, mcpackets, items, math
 import mcpackets
 
 def dumpPackets(serverprops,command):
@@ -29,7 +29,7 @@ def filter(serverprops,command):
 def hexdump(serverprops,command):
 	serverprops.hexdump = not serverprops.hexdump
 	print("hexdump is", ("on" if hexdump else "off"))
-
+	
 def help(serverprops,command):
 	print("""dumpPackets - toggle dumping of packets
 findPlayer - toggle location finding
@@ -175,23 +175,68 @@ def fill(serverprops, command):
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
-def entomb(serverprops, command):
-	if len(command) == 1:
-		print "syntax: entomb player blocktype"
-	if len(command) == 3:
+def tower (serverprops, command):
+	import math
+	import time
+	if len(command)==1:
+		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
+	if len(command) >= 4:
 		try:
-			otherplayer = [props for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
+			radius 	= int(command[1])		
+			height 	= int(command[2])	
+			block 	= int(command[3])
+			print("radius:%s height:%s block:%s" % (radius, height, block))
 		except:
-			print "Cannot find player %s" % command[1]
+			print "%s is not an integer. cannot make block." % command[1]
+			return
+		
+		my_x = int(math.floor(serverprops.playerdata['location'][0]));
+		my_y = int(math.floor(serverprops.playerdata['location'][1]));
+		my_z = int(math.floor(serverprops.playerdata['location'][2]));
+		
+		y_range = xrange(my_y, my_y + height)
+		print(y_range)
+		step = (1.0/radius)
+		print(step)
+		for y in y_range:
+			sep = 0.0
+			while sep < (2*math.pi):
+				x = round(radius*math.cos(sep) + my_x)
+				z = round(radius*math.sin(sep) + my_z)
+				sep = sep + step
+				print("X:%s Y:%s Z:%s" % (x, y, z))
+				
+				if block!=0:
+						#place block
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
+
+def entomb(serverprops, command):
+	import math
+	import time
+	if len(command)==1:
+		print("syntax: entomb with blocks")
+	if len(command) >= 3:
+		try:
+			otherplayer = [id for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
+		except:
+			print "cannot find player %s" % command[1]
 			return
 		try:
 			block = int(command[2])
 		except:
-			print "%s is not an integer, retard" % command[1]
+			print "%s is not an integer. cannot make block." % command[2]
 			return
-		for x in xrange(otherplayer['x'] -2 , otherplayer['x'] + 3):
-			for y in xrange(otherplayer['y'] -2, otherplayer['y'] + 5):
-				for z in xrange(otherplayer['z'] -2, otherplayer['z'] + 3):
+		
+		their_x = int(math.floor(serverprops.players[otherplayer]['x']/32))
+		their_y = int(math.floor(serverprops.players[otherplayer]['y']/32))
+		their_z = int(math.floor(serverprops.players[otherplayer]['z']/32))
+		
+		for x in xrange(their_x -2, their_x + 2):
+			for y in xrange(their_y -2, their_y + 5):
+				for z in xrange(their_z -2, their_z + 2):
+					
 					if block!=0:
 						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
 						print packet
@@ -209,6 +254,7 @@ commandlist = {
 	'inventory':inventory,
 	'movespawn':movespawn,
 	'fill':fill,
+	'tower':tower,
 	'entomb':entomb,
 }
 
