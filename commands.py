@@ -244,7 +244,7 @@ def circle (serverprops, command):
 					ddF_x += 2
 					f += ddF_x
 					
-					xy[0] = my_x + circle_x; 	xy[1] = my_z + circle_y  #these are the octets of the circle to have geometry remain consistent on larger scales (rounding errors occur)
+					xy[0] = my_x + circle_x; 	xy[1] = my_z + circle_y  #these are the octant of the circle to have geometry remain consistent on larger scales (rounding errors occur)
 					xy[2] = my_x - circle_x; 	xy[3] = my_z + circle_y
 					xy[4] = my_x + circle_x; 	xy[5] = my_z - circle_y
 					xy[6] = my_x - circle_x; 	xy[7] = my_z - circle_y
@@ -306,14 +306,14 @@ def entomb(serverprops, command):
 	import time
 	if len(command)==1:
 		print("syntax: entomb with blocks")
-	if len(command) >= 3:
+	if len(command) >= 2:
 		try:
 			otherplayer = [id for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
 		except:
 			print "cannot find player %s" % command[1]
 			return
 		try:
-			block = int(command[2])
+			block = int(command[1])
 		except:
 			print "%s is not an integer. cannot make block." % command[2]
 			return
@@ -331,6 +331,31 @@ def entomb(serverprops, command):
 						print packet
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
+						
+def entombme (serverprops, command):
+	import math
+	import time
+	if len(command)==1:
+		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
+	if len(command) >= 2:
+		try:	
+			block 	= int(command[1])
+		except:
+			print "%s is not an integer. cannot make entomb." % command[1]
+			return
+		
+		my_x = int(math.floor(serverprops.playerdata['location'][0]));
+		my_y = int(math.floor(serverprops.playerdata['location'][1]));
+		my_z = int(math.floor(serverprops.playerdata['location'][2]));
+		
+		for x in xrange(my_x -2, my_x + 3):
+			for y in xrange(my_y -2, my_y + 4):
+				for z in xrange(my_z -2, my_z + 3):
+					if block!=0:
+						#place block
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
 
 commandlist = {
 	'dumpPackets':dumpPackets,
@@ -346,6 +371,7 @@ commandlist = {
 	'circle':circle,
 	'tower':tower,
 	'entomb':entomb,
+	'entombme':entombme,
 }
 
 def runCommand(serverprops,command):
