@@ -47,7 +47,7 @@ class MainWindow(QtGui.QWidget):
 		
 		# add player info
 		grid.addWidget(QtGui.QLabel('Server:'),0,0)
-		gui['server'] = QtGui.QLineEdit('mediacenter')
+		gui['server'] = QtGui.QLineEdit()
 		grid.addWidget(gui['server'],0,1)
 		
 		grid.addWidget(QtGui.QLabel('Current Time'), 1, 0)
