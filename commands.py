@@ -1,5 +1,5 @@
-import hooks, mcpackets, items, math
-import mcpackets
+import math, re
+import mcpackets, hooks, mcpackets, items
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets
@@ -212,36 +212,7 @@ def tower (serverprops, command):
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
-def entomb(serverprops, command):
-	import math
-	import time
-	if len(command)==1:
-		print("syntax: entomb with blocks")
-	if len(command) >= 3:
-		try:
-			otherplayer = [id for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
-		except:
-			print "cannot find player %s" % command[1]
-			return
-		try:
-			block = int(command[2])
-		except:
-			print "%s is not an integer. cannot make block." % command[2]
-			return
-		
-		their_x = int(math.floor(serverprops.players[otherplayer]['x']/32))
-		their_y = int(math.floor(serverprops.players[otherplayer]['y']/32))
-		their_z = int(math.floor(serverprops.players[otherplayer]['z']/32))
-		
-		for x in xrange(their_x -2, their_x + 2):
-			for y in xrange(their_y -2, their_y + 5):
-				for z in xrange(their_z -2, their_z + 2):
-					
-					if block!=0:
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
-						print packet
-						encpacket = mcpackets.encode('c2s', 0x0F, packet)
-						serverprops.comms.serverqueue.put(encpacket)
+
 
 commandlist = {
 	'dumpPackets':dumpPackets,
@@ -256,6 +227,7 @@ commandlist = {
 	'fill':fill,
 	'tower':tower,
 	'entomb':entomb,
+	'apocalypsennow':apocalypse,
 }
 
 def runCommand(serverprops,command):
@@ -264,3 +236,70 @@ def runCommand(serverprops,command):
 		commandlist[commandname](serverprops,command)
 	else:
 		print "unknown command"
+
+
+##### new command runner!
+command_list = []
+import os.listdir, os.path, imp
+from modules import Command
+
+def load_commands(command):
+	""" dynamically loads commands from the /modules subdirectory """
+	path = os.path.abspath(__file__)
+	for file in [f for f in os.listdir(path) if f != "__init.py__"]:
+		try:
+			module = imp.find_module(".".join(file.split(".")[:-1]), pathname=path)
+			for obj_name in dir(module):
+				try:
+					potential_command = getattr(module, obj_name)
+					if isinstance(potential_command, Command):
+						#init command instance and place in list
+						command_list.append(postential_command(serverprops))
+				except:
+					pass
+		except ImportError:
+			print "!! Could not load %s" % module
+			
+def parse_command(command):
+	parsed_cmd = list(smart_split(command))
+	command_name = parsed_cmd[0]
+	try:
+		command_obj = [c for c in command_list if c.__class__.__name__==command_name or c.command_alias == command_name ][0]
+	except:
+		raise Exception("Could not find command with name or alias '%s'"%command_name)
+	
+	# handle quotes!
+	command_obj.run(*(parsed_cmd[1:]))
+
+
+###### utility functions
+
+# Expression to match some_token and some_token="with spaces" (and similarly
+# for single-quoted strings).
+smart_split_re = re.compile(r"""
+    ((?:
+        [^\s'"]*
+        (?:
+            (?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')
+            [^\s'"]*
+        )+
+    ) | \S+)
+""", re.VERBOSE)
+
+def smart_split(text):
+    r"""
+    Generator that splits a string by spaces, leaving quoted phrases together.
+    Supports both single and double quotes, and supports escaping quotes with
+    backslashes. In the output, strings will keep their initial and trailing
+    quote marks and escaped quotes will remain escaped (the results can then
+    be further processed with unescape_string_literal()).
+
+    >>> list(smart_split(r'This is "a person\'s" test.'))
+    [u'This', u'is', u'"a person\\\'s"', u'test.']
+    >>> list(smart_split(r"Another 'person\'s' test."))
+    [u'Another', u"'person\\'s'", u'test.']
+    >>> list(smart_split(r'A "\"funky\" style" test.'))
+    [u'A', u'"\\"funky\\" style"', u'test.']
+    """
+    for bit in smart_split_re.finditer(text):
+        yield bit.group(0)
