@@ -3,6 +3,7 @@ import time
 import positioning
 import hooks
 import mcpackets
+import math
 from PyQt4 import QtGui, QtCore
 
 framerate = 30
@@ -168,11 +169,46 @@ class MainWindow(QtGui.QWidget):
 		pass
 	
 	def Teleport(self):
+		hooks.addHook(self.serverprops,'overridePlayerPos')
 		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
-		packet = {'x':wploc[0], 'y':wploc[1]+5, 'stance':0, 'z':wploc[2], 'rotation':0, 'pitch':0, 'flying':0}
-		encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playermovelook'],packet)
-		self.serverprops.comms.clientqueue.put(encpacket)
+		my_x = int(math.floor(self.serverprops.playerdata['location'][0]))
+		my_y = int(math.floor(self.serverprops.playerdata['location'][1]))
+		my_z = int(math.floor(self.serverprops.playerdata['location'][2]))
+
+		jumpdist = 20
 		
+		x_reached=False
+		y_reached=False
+		z_reached=False
+		while((x_reached==False) or (y_reached==False) or (z_reached==False)):
+			my_x = int(math.floor(self.serverprops.playerdata['location'][0]))
+			my_y = int(math.floor(self.serverprops.playerdata['location'][1]))
+			my_z = int(math.floor(self.serverprops.playerdata['location'][2]))
+			if (my_x <= wploc[0]) and (x_reached==False): 	
+					if wploc[0] - my_x > jumpdist:	my_x += jumpdist
+					else: 							my_x = wploc[0]; x_reached = True
+			elif 	my_x - wploc[0] > jumpdist:		my_x -= jumpdist
+			else: 									my_x = wploc[0]; x_reached = True		
+
+			if (my_y <= wploc[1]) and (y_reached==False): 	
+					if wploc[1] - my_y > jumpdist:	my_y += jumpdist
+					else: 							my_y = wploc[1]; y_reached = True 
+			elif 	my_y - wploc[1] > jumpdist:		my_y -= jumpdist
+			else: 									my_y = wploc[1] + 4; y_reached = True	
+										
+			if (my_z <= wploc[2]) and (z_reached==False): 	
+					if wploc[2] - my_z > jumpdist:	my_z += jumpdist
+					else: 							my_z = wploc[2]; z_reached = True 
+			elif 	my_z - wploc[2] > jumpdist:		my_z -= jumpdist
+			else: 									my_z = wploc[2]; z_reached = True				
+
+			print("X:%s Y:%s Z:%s to X:%s Y:%s Z:%s %s%s%s" % (my_x, my_y, my_z, wploc[0], wploc[1], wploc[2],x_reached, y_reached, z_reached))
+			time.sleep(0.05)
+										
+			packet = {'x':my_x, 'y':my_y, 'stance':0, 'z':my_z, 'flying':0}
+			encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playerposition'],packet)
+			self.serverprops.comms.clientqueue.put(encpacket)
+		hooks.removeHook(self.serverprops,'overridePlayerPos')
 	def compassWayPoint(self):
 		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
 		packet = {'x':wploc[0], 'y':wploc[1], 'z':wploc[2]}
