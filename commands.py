@@ -1,5 +1,5 @@
-import math, re
-import mcpackets, hooks, mcpackets, items
+import hooks, mcpackets, items, math
+import mcpackets
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets
@@ -175,6 +175,95 @@ def fill(serverprops, command):
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
+def circle (serverprops, command):
+	import math
+	import time
+	if len(command)==1:
+		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
+	if len(command) >= 4:
+		try:
+			radius 	= float(command[1])		
+			height 	= int(command[2])	
+			slope   = float(command[3])
+			thickness = int(command[4])
+			block 	= int(command[5])
+			print("radius: %s height: %s block: %s" % (radius, height, block))
+		except:
+			return
+		
+		my_x = int(math.floor(serverprops.playerdata['location'][0]));
+		my_y = int(math.floor(serverprops.playerdata['location'][1]));
+		my_z = int(math.floor(serverprops.playerdata['location'][2]));
+		
+		if (height > 0):
+			y_range = xrange(my_y, my_y + height)
+		else:	
+			y_range = xrange(my_y-1, my_y + height -1, -1)
+			
+		print(y_range)
+	
+		for y in y_range:
+			radius = (radius + slope)
+			thickness_radius = radius - thickness -1
+			for t in range(-thickness , thickness+1):
+				thickness_radius = thickness_radius + 1
+				print("Radius: %s ThckR: %s" % (radius, thickness_radius))
+				f = 1 - thickness_radius
+				ddF_x = 1
+				ddF_y = -2 * thickness_radius
+				circle_x = 0
+				circle_y = thickness_radius
+				xy = range(0, 17)
+				
+				xy[0] = my_x; 			xy[1] = my_z + thickness_radius
+				xy[2] = my_x; 			xy[3] = my_z - thickness_radius
+				xy[4] = my_x + thickness_radius; 	xy[5] = my_z
+				xy[6] = my_x - thickness_radius; 	xy[7] = my_z
+				
+				i=0	
+				for i in range(0,7):
+					x = xy[i]; z = xy[i+1]
+					#print("X:%s Y:%s Z:%s" % (x, y, z))
+					if block!=0:
+						#place block
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
+				
+				while(circle_x < circle_y):
+					
+					#ddF_x == 2 * x + 1;
+					#ddF_y == -2 * y;
+					#f == x*x + y*y - radius*radius + 2*x - y + 1;
+					
+					if(f >= 0): 
+						circle_y -= 1
+						ddF_y += 2
+						f += ddF_y
+					circle_x += 1
+					ddF_x += 2
+					f += ddF_x
+					
+					xy[0] = my_x + circle_x; 	xy[1] = my_z + circle_y  #these are the octets of the circle to have geometry remain consistent on larger scales (rounding errors occur)
+					xy[2] = my_x - circle_x; 	xy[3] = my_z + circle_y
+					xy[4] = my_x + circle_x; 	xy[5] = my_z - circle_y
+					xy[6] = my_x - circle_x; 	xy[7] = my_z - circle_y
+					xy[8] = my_x + circle_y; 	xy[9] = my_z + circle_x
+					xy[10] = my_x - circle_y; 	xy[11] = my_z + circle_x
+					xy[12] = my_x + circle_y; 	xy[13] = my_z - circle_x
+					xy[14] = my_x - circle_y; 	xy[15] = my_z - circle_x
+					i=0
+					for i in range(0, 15):
+						x = xy[i]; z = xy[i+1]
+						#print("X:%s Y:%s Z:%s" % (x, y, z))
+					
+						if block!=0:
+							#place block
+							packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+							encpacket = mcpackets.encode('c2s', 0x0F, packet)
+							serverprops.comms.serverqueue.put(encpacket)
+							
+
 def tower (serverprops, command):
 	import math
 	import time
@@ -182,7 +271,7 @@ def tower (serverprops, command):
 		print("syntax: fill player_at_other_corner blocktype [hollow|nosides]")
 	if len(command) >= 4:
 		try:
-			radius 	= int(command[1])		
+			radius 	= float(command[1])		
 			height 	= int(command[2])	
 			block 	= int(command[3])
 			print("radius:%s height:%s block:%s" % (radius, height, block))
@@ -212,7 +301,36 @@ def tower (serverprops, command):
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
-
+def entomb(serverprops, command):
+	import math
+	import time
+	if len(command)==1:
+		print("syntax: entomb with blocks")
+	if len(command) >= 3:
+		try:
+			otherplayer = [id for id,props in serverprops.players.items() if command[1].lower() in props['playerName'].lower()][0]
+		except:
+			print "cannot find player %s" % command[1]
+			return
+		try:
+			block = int(command[2])
+		except:
+			print "%s is not an integer. cannot make block." % command[2]
+			return
+		
+		their_x = int(math.floor(serverprops.players[otherplayer]['x']/32))
+		their_y = int(math.floor(serverprops.players[otherplayer]['y']/32))
+		their_z = int(math.floor(serverprops.players[otherplayer]['z']/32))
+		
+		for x in xrange(their_x -2, their_x + 2):
+			for y in xrange(their_y -2, their_y + 5):
+				for z in xrange(their_z -2, their_z + 2):
+					
+					if block!=0:
+						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						print packet
+						encpacket = mcpackets.encode('c2s', 0x0F, packet)
+						serverprops.comms.serverqueue.put(encpacket)
 
 commandlist = {
 	'dumpPackets':dumpPackets,
@@ -225,9 +343,9 @@ commandlist = {
 	'inventory':inventory,
 	'movespawn':movespawn,
 	'fill':fill,
+	'circle':circle,
 	'tower':tower,
 	'entomb':entomb,
-	'apocalypsennow':apocalypse,
 }
 
 def runCommand(serverprops,command):
@@ -236,70 +354,3 @@ def runCommand(serverprops,command):
 		commandlist[commandname](serverprops,command)
 	else:
 		print "unknown command"
-
-
-##### new command runner!
-command_list = []
-import os.listdir, os.path, imp
-from modules import Command
-
-def load_commands(command):
-	""" dynamically loads commands from the /modules subdirectory """
-	path = os.path.abspath(__file__)
-	for file in [f for f in os.listdir(path) if f != "__init.py__"]:
-		try:
-			module = imp.find_module(".".join(file.split(".")[:-1]), pathname=path)
-			for obj_name in dir(module):
-				try:
-					potential_command = getattr(module, obj_name)
-					if isinstance(potential_command, Command):
-						#init command instance and place in list
-						command_list.append(postential_command(serverprops))
-				except:
-					pass
-		except ImportError:
-			print "!! Could not load %s" % module
-			
-def parse_command(command):
-	parsed_cmd = list(smart_split(command))
-	command_name = parsed_cmd[0]
-	try:
-		command_obj = [c for c in command_list if c.__class__.__name__==command_name or c.command_alias == command_name ][0]
-	except:
-		raise Exception("Could not find command with name or alias '%s'"%command_name)
-	
-	# handle quotes!
-	command_obj.run(*(parsed_cmd[1:]))
-
-
-###### utility functions
-
-# Expression to match some_token and some_token="with spaces" (and similarly
-# for single-quoted strings).
-smart_split_re = re.compile(r"""
-    ((?:
-        [^\s'"]*
-        (?:
-            (?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')
-            [^\s'"]*
-        )+
-    ) | \S+)
-""", re.VERBOSE)
-
-def smart_split(text):
-    r"""
-    Generator that splits a string by spaces, leaving quoted phrases together.
-    Supports both single and double quotes, and supports escaping quotes with
-    backslashes. In the output, strings will keep their initial and trailing
-    quote marks and escaped quotes will remain escaped (the results can then
-    be further processed with unescape_string_literal()).
-
-    >>> list(smart_split(r'This is "a person\'s" test.'))
-    [u'This', u'is', u'"a person\\\'s"', u'test.']
-    >>> list(smart_split(r"Another 'person\'s' test."))
-    [u'Another', u"'person\\'s'", u'test.']
-    >>> list(smart_split(r'A "\"funky\" style" test.'))
-    [u'A', u'"\\"funky\\" style"', u'test.']
-    """
-    for bit in smart_split_re.finditer(text):
-        yield bit.group(0)
