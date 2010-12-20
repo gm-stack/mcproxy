@@ -3,7 +3,7 @@ import socket, struct, time, sys, traceback
 from Queue import Queue
 from threading import Thread, RLock
 from binascii import hexlify
-#
+
 import mcpackets, nbt, hooks, items, commands
 
 class FowardingBuffer():
