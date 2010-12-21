@@ -71,7 +71,20 @@ def decodeExplosion(buffer):
 		z = nbt.TAG_Byte(buffer=buffer).value
 		packet['blocks'].append((x,y,z))
 	return packet
-	
+
+def decodeClickInvent(buffer):
+	packet = {
+		'unknown':	nbt.TAG_Byte(buffer=buffer).value,
+		'slotid':	nbt.TAG_Short(buffer=buffer).value,
+		'rightclick': nbt.TAG_Byte(buffer=buffer).value,
+		'numclicks': nbt.TAG_Short(buffer=buffer).value,
+		'itemid': nbt.TAG_Short(buffer=buffer).value
+	}
+	if (packet['itemid'] != -1):
+		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
+	return packet
+
 # name is name of packet
 # decoders is a set of functions which define specialty decoders
 # encoders is a set of functions which define specialty encoders
@@ -126,11 +139,15 @@ decoders = {
 	
 	0x08: { 'name': 'health',
 			'hooks': [],
-			'format': [od([ ('health', nbt.TAG_Byte), ])],}, #health: 0-20
+			'format': [od([ ('health', nbt.TAG_Short), ])],}, #health: 0-20
 	
 	0x09: { 'name':'respawn',
 			'hooks':'',
 			'format': [{}, od([ ('unknown', nbt.TAG_Byte), ])], },
+	
+	0x10: { 'name':'holding',
+			'hooks':[],
+			'format': [od([ ('item', nbt.TAG_Short), ])],},
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
@@ -351,6 +368,40 @@ decoders = {
 			'decoders': [decodeExplosion],
 			},
 	
+	#unknown
+	
+	0x64: { 'name':'unknown 0x64',
+			'hooks': [],
+			'format' : [od([('1',	nbt.TAG_Byte),
+							('2',	nbt.TAG_Byte),
+							('3',	nbt.TAG_String),
+							('4',nbt.TAG_Byte),])] },
+	
+	0x65: { 'name':'closeinvent',
+			'hooks': [],
+			'format' : [od([ ('unknown', nbt.TAG_Byte), ])], },
+	
+	0x66: { 'name':'clickinvent',
+			'hooks': [],
+			'decoders' : [decodeClickInvent],},
+	
+	#0x67 unknown
+	#0x68 unknown
+	
+	0x69: { 'name':'unknown 0x69',
+			'hooks': [],
+			'format' : [od([('1',	nbt.TAG_Byte),
+							('2',	nbt.TAG_Short),
+							('3',	nbt.TAG_Short), ])] },
+
+	0x6A: { 'name':'unknown 0x6A',
+			'hooks': [],
+			'format' : [od([('1',	nbt.TAG_Byte),
+							('2',	nbt.TAG_Short),
+							('3',	nbt.TAG_Byte), ])] },
+	
+	#0x82 unknown
+	
 	#disconnect
 	
 	0xFF: {	'name':'disconnect',
@@ -369,7 +420,10 @@ def decode(direction, buffer, packetID):
 		format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
 		#render to stream
 		for field in format:
-			packet[field] = format[field](buffer=buffer).value
+			try:
+				packet[field] = format[field](buffer=buffer).value
+			except:
+				print "error decoding"
 		#print packet
 	
 	#decode using specialized decoder

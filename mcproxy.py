@@ -33,7 +33,7 @@ class FowardingBuffer():
 	def render_last_packet(self):
 		rpack = self.lastpack
 		truncate = False
-		if len(rpack) > 32:
+		if len(rpack) > 512:
 			rpack = rpack[:32]
 			truncate = True
 		rpack = " ".join([hexlify(byte) for byte in rpack])
