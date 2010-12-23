@@ -370,7 +370,8 @@ commandlist = {
 	'fill':fill,
 	'circle':circle,
 	'tower':tower,
-	'entomb':entomb,
+	#'entomb':entomb,
+	#'apocalypsennow':apocalypse,
 	'entombme':entombme,
 }
 
@@ -380,3 +381,60 @@ def runCommand(serverprops,command):
 		commandlist[commandname](serverprops,command)
 	else:
 		print "unknown command"
+<<<<<<< .mine
+
+
+##### new command runner!
+# find the command object for a specified name
+def find_command(command_name):
+	try:
+		returncommand_obj = [c for c in command_list if c.__class__.__name__==command_name or c.command_alias == command_name ][0]
+	except:
+		raise Exception("Could not find command with name or alias '%s'"%command_name)
+	
+# parsing of command string
+def parse_command(command):
+	# split incoming command string
+	parsed_cmd = list(smart_split(command))
+	command_name = parsed_cmd[0]
+	# separate args including quote handling
+	args = [(arg[1:-1] if arg.startswith("\"") or arg.startswith("'") else arg) 
+			for arg in parsed_cmd[1:] if not arg.contains("=")]
+	kwargs = dict([(name,(value[1:-1] if value.startswith("\"") or value.startswith("'") else value)) 
+					for name, value in parsed_cmd[1:].items() if arg.contains("=")])
+	return command_name, args, kwargs
+
+
+
+###### utility functions
+
+# Expression to match some_token and some_token="with spaces" (and similarly
+# for single-quoted strings).
+smart_split_re = re.compile(r"""
+    ((?:
+        [^\s'"]*
+        (?:
+            (?:"(?:[^"\\]|\\.)*" | '(?:[^'\\]|\\.)*')
+            [^\s'"]*
+        )+
+    ) | \S+)
+""", re.VERBOSE)
+
+def smart_split(text):
+    r"""
+    Generator that splits a string by spaces, leaving quoted phrases together.
+    Supports both single and double quotes, and supports escaping quotes with
+    backslashes. In the output, strings will keep their initial and trailing
+    quote marks and escaped quotes will remain escaped (the results can then
+    be further processed with unescape_string_literal()).
+
+    >>> list(smart_split(r'This is "a person\'s" test.'))
+    [u'This', u'is', u'"a person\\\'s"', u'test.']
+    >>> list(smart_split(r"Another 'person\'s' test."))
+    [u'Another', u"'person\\'s'", u'test.']
+    >>> list(smart_split(r'A "\"funky\" style" test.'))
+    [u'A', u'"\\"funky\\" style"', u'test.']
+    """
+    for bit in smart_split_re.finditer(text):
+        yield bit.group(0)=======
+>>>>>>> .r158
