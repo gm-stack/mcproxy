@@ -1,5 +1,6 @@
 import math, time
-from modules import Command
+from base import Command
+#import mcpackets
     
 class Entomb(Command):
     """Syntax: entomb other_player [block_type]"""

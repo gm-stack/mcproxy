@@ -35,7 +35,7 @@ blockids = {
 	32	:"magenta cloth",
 	33	:"pink cloth",
 	34	:"black cloth",
-	35	:"gray cloth / white cloth",
+	35	:"white cloth",
 	36	:"white cloth",
 	37	:"yellow flower",
 	38	:"red rose",
@@ -188,3 +188,11 @@ itemids = {
 }
 item2name = dict([(itemids[id], id) for id in itemids])
 item2underName = dict([(itemids[id].replace(" ","_"), id) for id in itemids])
+
+def get_block_type(string):
+	""" Will return IndexError on any unknown block or unparseable block """
+	try:
+		return int(string)
+	except:
+		return id2name[string]
+		

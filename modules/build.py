@@ -1,5 +1,6 @@
 import math, time
-from modules import Command
+from base import Command
+#import mcpackets
 
 class Tower(Command):
     """syntax: tower radius height blocktype [hollow=true]"""
@@ -13,7 +14,7 @@ class Tower(Command):
             self.print_chat("radius and height must be integers")
             return
         try:
-            block_type = util.get_block_type(block_type)
+            block_type = items.get_block_type(block_type)
         except:
             self.print_chat("blocktype must be integer or known blocktype string")
             return

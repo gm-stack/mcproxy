@@ -4,7 +4,10 @@ from Queue import Queue
 from threading import Thread, RLock
 from binascii import hexlify
 
-import mcpackets, nbt, hooks, items, commands
+import mcpackets, nbt, hooks, items, commands, modules
+
+import os, sys
+sys.path.append(os.path.abspath(__file__))
 
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
@@ -159,9 +162,12 @@ def startNetworkSockets(serverprops):
 			#host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 			# make it pick one from: http://servers.minecraftforum.net/
 			
-			host = serverprops.gui['server'].text()
+			host = str(serverprops.gui['server'].text())
 			
-			port = 25565
+			if ":" in host: 
+				host, port = host.split(":")
+				port = int(port)
+			else: port = 25565
 			print("Connecting to %s..." % host)	
 			serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			serversocket.connect((host,port))
@@ -180,13 +186,15 @@ def startNetworkSockets(serverprops):
 			serverthread.join()
 			clientthread.join()
 			
-		except:
-			pass
+		except Exception as e:
+			print "could not connect: ",e
 
 if __name__ == "__main__":
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
 	#====================================================================================#
+	
+	#modules.load_modules()
 	
 	sd = Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,))
 	sd.setDaemon(True)
