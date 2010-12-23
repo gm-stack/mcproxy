@@ -381,8 +381,6 @@ def runCommand(serverprops,command):
 		commandlist[commandname](serverprops,command)
 	else:
 		print "unknown command"
-<<<<<<< .mine
-
 
 ##### new command runner!
 # find the command object for a specified name
@@ -410,6 +408,7 @@ def parse_command(command):
 
 # Expression to match some_token and some_token="with spaces" (and similarly
 # for single-quoted strings).
+import re
 smart_split_re = re.compile(r"""
     ((?:
         [^\s'"]*
@@ -436,5 +435,4 @@ def smart_split(text):
     [u'A', u'"\\"funky\\" style"', u'test.']
     """
     for bit in smart_split_re.finditer(text):
-        yield bit.group(0)=======
->>>>>>> .r158
+        yield bit.group(0)

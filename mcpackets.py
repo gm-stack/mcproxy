@@ -89,7 +89,7 @@ def decodeSetSlot(buffer):
 	packet = {
 		'windowid':	nbt.TAG_Byte(buffer=buffer).value,
 		'slotid':	nbt.TAG_Short(buffer=buffer).value,
-		'itemid': nbt.TAG_Byte(buffer=buffer).value,
+		'itemid': 	nbt.TAG_Byte(buffer=buffer).value,
 	}
 	if (packet['itemid'] != -1):
 		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
@@ -98,16 +98,16 @@ def decodeSetSlot(buffer):
 
 def decodeWindowItems(buffer):
 	packet = {
-		'type':	nbt.TAG_Int(buffer=buffer).value,
+		'type':		nbt.TAG_Byte(buffer=buffer).value,
 		'count':	nbt.TAG_Short(buffer=buffer).value,
-		'payload': [],
+		'payload': 	[],
 	}
 	for num in range(packet['count']):
 		itemid = nbt.TAG_Short(buffer=buffer).value
 		if (itemid != -1):
 			count = nbt.TAG_Byte(buffer=buffer).value
 			uses = nbt.TAG_Short(buffer=buffer).value
-			payload.append({'itemid': itemid, 'count': count, 'uses': uses})
+			packet['payload'].append({'itemid': itemid, 'count': count, 'uses': uses})
 	return packet
 
 # name is name of packet
@@ -150,11 +150,11 @@ decoders = {
 	
 	#0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
 	
-	0x05: { 'name':'unknown 0x05',
+	0x05: { 'name':'entityequipment',
 			'hooks': [],
-			'format': [od([ ('unknown1',	nbt.TAG_Int),
-							('unknown2',	nbt.TAG_Short),
-							('unknomn3',	nbt.TAG_Short),])] },
+			'format': [od([ ('entityID',	nbt.TAG_Int),
+							('slot',	nbt.TAG_Short),
+							('itemID',	nbt.TAG_Short),])] },
 	
 	0x06: {	'name':'spawnposition',
 			'hooks': [],
@@ -176,10 +176,12 @@ decoders = {
 	#		'hooks':'',
 	#		'format': [{}, od([ ('unknown', nbt.TAG_Byte), ])], },
 	
-	0x09: { 'name':'respawn', 
+	0x09: { 'name': 'respawn', 
 			'decoders': [lambda buff: {}], 
 			'hooks': []},  
-	
+	0x10: { 'name': 'holdingchange',
+			'hooks': [],
+			'format': [od([	('itemID', nbt.TAG_Short) ])], },
 	# playerstate packets	
 	0x0A: {	'name':'flying',
 			'hooks': [], 
