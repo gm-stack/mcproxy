@@ -72,7 +72,7 @@ def decodeExplosion(buffer):
 		packet['blocks'].append((x,y,z))
 	return packet
 
-def decodeClickInvent(buffer):
+def decodeWindowClick(buffer):
 	packet = {
 		'unknown':	nbt.TAG_Byte(buffer=buffer).value,
 		'slotid':	nbt.TAG_Short(buffer=buffer).value,
@@ -85,11 +85,36 @@ def decodeClickInvent(buffer):
 		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
 	return packet
 
+def decodeSetSlot(buffer):
+	packet = {
+		'windowid':	nbt.TAG_Byte(buffer=buffer).value,
+		'slotid':	nbt.TAG_Short(buffer=buffer).value,
+		'itemid': nbt.TAG_Byte(buffer=buffer).value,
+	}
+	if (packet['itemid'] != -1):
+		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
+	return packet
+
+def decodeWindowItems(buffer):
+	packet = {
+		'type':	nbt.TAG_Int(buffer=buffer).value,
+		'count':	nbt.TAG_Short(buffer=buffer).value,
+		'payload': [],
+	}
+	for num in range(packet['count']):
+		itemid = nbt.TAG_Short(buffer=buffer).value
+		if (itemid != -1):
+			count = nbt.TAG_Byte(buffer=buffer).value
+			uses = nbt.TAG_Short(buffer=buffer).value
+			payload.append({'itemid': itemid, 'count': count, 'uses': uses})
+	return packet
+
 # name is name of packet
 # decoders is a set of functions which define specialty decoders
 # encoders is a set of functions which define specialty encoders
 # hooks is a list of functions to be called when a packet is received
-#
+# format is s2c followed by c2s second
 
 decoders = {
 	# basic packets
@@ -99,11 +124,11 @@ decoders = {
 	
 	0x01: { 'name':'login',
 			'hooks': [],
-			'format': [od([ ('protoversion',nbt.TAG_Int),
-							('blank1',		nbt.TAG_String),
-							('blank2',		nbt.TAG_String),
-							('blank3', 		nbt.TAG_Long),
-							('blank4',	nbt.TAG_Byte), ]),
+			'format': [od([ ('entid',		nbt.TAG_Int),
+							('unknown1',	nbt.TAG_String),
+							('unknown2',	nbt.TAG_String),
+							('mapseed', 	nbt.TAG_Long),
+							('dimension',	nbt.TAG_Byte), ]),
 					   od([ ('protoversion',nbt.TAG_Int),
 							('username',	nbt.TAG_String),
 							('password',	nbt.TAG_String),
@@ -123,7 +148,13 @@ decoders = {
 			'hooks': [],
 			'format': [od([ ('time',		nbt.TAG_Long)])]},
 	
-	0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
+	#0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
+	
+	0x05: { 'name':'unknown 0x05',
+			'hooks': [],
+			'format': [od([ ('unknown1',	nbt.TAG_Int),
+							('unknown2',	nbt.TAG_Short),
+							('unknomn3',	nbt.TAG_Short),])] },
 	
 	0x06: {	'name':'spawnposition',
 			'hooks': [],
@@ -141,13 +172,13 @@ decoders = {
 			'hooks': [],
 			'format': [od([ ('health', nbt.TAG_Short), ])],}, #health: 0-20
 	
-	0x09: { 'name':'respawn',
-			'hooks':'',
-			'format': [{}, od([ ('unknown', nbt.TAG_Byte), ])], },
+	#0x09: { 'name':'respawn',
+	#		'hooks':'',
+	#		'format': [{}, od([ ('unknown', nbt.TAG_Byte), ])], },
 	
-	0x10: { 'name':'holding',
-			'hooks':[],
-			'format': [od([ ('item', nbt.TAG_Short), ])],},
+	0x09: { 'name':'respawn', 
+			'decoders': [lambda buff: {}], 
+			'hooks': []},  
 	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
@@ -207,16 +238,21 @@ decoders = {
 					
 	#more playerstate
 	
-	0x10: {	'name':'blockitemswitch',
-	 		'hooks': [],
-	 		'format': [od([	('entityID',		nbt.TAG_Int),
-							('itemID',			nbt.TAG_Short),])] },
+		
+	0x10: { 'name':'holding',
+			'hooks':[],
+			'format': [od([ ('item', nbt.TAG_Short), ])],},
 	
-	0x11: {	'name':'addtoinv',
-			'hooks': [],
-			'format': [od([	('itemtype',	nbt.TAG_Short),
-							('amount',		nbt.TAG_Byte),
-							('life',		nbt.TAG_Short),])] },
+	#0x10: {	'name':'blockitemswitch',
+	# 		'hooks': [],
+	# 		'format': [od([	('entityID',		nbt.TAG_Int),
+	#						('itemID',			nbt.TAG_Short),])] },
+	
+	#0x11: {	'name':'addtoinv',
+	#		'hooks': [],
+	#		'format': [od([	('itemtype',	nbt.TAG_Short),
+	#						('amount',		nbt.TAG_Byte),
+	#						('life',		nbt.TAG_Short),])] },
 	
 	0x12: {	'name':'armanim',
 			'hooks': [],
@@ -317,10 +353,10 @@ decoders = {
 							('rotation',	nbt.TAG_Byte),
 							('pitch',		nbt.TAG_Byte),])] },
 	
-	0x26: {	'name':'mobdeath?',
+	0x26: {	'name':'entstatus',
 			'hooks': [],
-			'format': [od([ ('unknown1', nbt.TAG_Int),
-							('unknown2', nbt.TAG_Byte),])] },
+			'format': [od([ ('entid', nbt.TAG_Int),
+							('entstatus', nbt.TAG_Byte),])] },
 	
 	0x27: {	'name':'attachent',
 			'hooks': [],
@@ -359,9 +395,9 @@ decoders = {
 					
 	#testing packet
 	
-	0x3B: {	'name':'complexent', 		
-			'decoders': [decodeComplexEntity],		
-			'hooks': []},
+	#0x3B: {	'name':'complexent', 		
+	#		'decoders': [decodeComplexEntity],		
+	#		'hooks': []},
 	
 	0x3C: { 'name':'explosion',
 			'hooks':[],
@@ -370,37 +406,50 @@ decoders = {
 	
 	#unknown
 	
-	0x64: { 'name':'unknown 0x64',
+	0x64: { 'name':'openwindow',
 			'hooks': [],
-			'format' : [od([('1',	nbt.TAG_Byte),
-							('2',	nbt.TAG_Byte),
-							('3',	nbt.TAG_String),
-							('4',nbt.TAG_Byte),])] },
+			'format' : [od([('window id',		nbt.TAG_Byte),
+							('inventory type',	nbt.TAG_Byte),
+							('window title',	nbt.TAG_String),
+							('numslots',		nbt.TAG_Byte),])] },
 	
-	0x65: { 'name':'closeinvent',
+	0x65: { 'name':'closewindow',
 			'hooks': [],
 			'format' : [od([ ('unknown', nbt.TAG_Byte), ])], },
 	
-	0x66: { 'name':'clickinvent',
+	0x66: { 'name':'windowclick',
 			'hooks': [],
-			'decoders' : [decodeClickInvent],},
+			'decoders' : [decodeWindowClick],},
 	
-	#0x67 unknown
-	#0x68 unknown
-	
-	0x69: { 'name':'unknown 0x69',
+	0x67: { 'name':'setslot',
 			'hooks': [],
-			'format' : [od([('1',	nbt.TAG_Byte),
-							('2',	nbt.TAG_Short),
-							('3',	nbt.TAG_Short), ])] },
+			'decoders' : [decodeSetSlot],},
+	
+	0x68: { 'name':'windowitems',
+			'hooks': [],
+			'decoders': [decodeWindowItems],},
 
-	0x6A: { 'name':'unknown 0x6A',
+	0x69: { 'name':'updateprogressbar',
 			'hooks': [],
-			'format' : [od([('1',	nbt.TAG_Byte),
-							('2',	nbt.TAG_Short),
-							('3',	nbt.TAG_Byte), ])] },
-	
-	#0x82 unknown
+			'format' : [od([('windowid',	nbt.TAG_Byte),
+							('progressbar',	nbt.TAG_Short),
+							('value',		nbt.TAG_Short), ])] },
+
+	0x6A: { 'name':'transaction',
+			'hooks': [],
+			'format' : [od([('windowid',		nbt.TAG_Byte),
+							('actionnumber',	nbt.TAG_Short),
+							('accepted',		nbt.TAG_Byte), ])] },
+		
+	0x82: { 'name':'updatesign',
+			'hooks': [],
+			'format' : [od([('x',		nbt.TAG_Int),
+							('y',		nbt.TAG_Short),
+							('z',		nbt.TAG_Int),
+							('Text1',	nbt.TAG_String),
+							('Text2',	nbt.TAG_String),
+							('Text3',	nbt.TAG_String),
+							('Text4',	nbt.TAG_String),])] },
 	
 	#disconnect
 	
