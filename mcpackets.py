@@ -89,7 +89,7 @@ def decodeSetSlot(buffer):
 	packet = {
 		'windowid':	nbt.TAG_Byte(buffer=buffer).value,
 		'slotid':	nbt.TAG_Short(buffer=buffer).value,
-		'itemid': 	nbt.TAG_Byte(buffer=buffer).value,
+		'itemid': 	nbt.TAG_Short(buffer=buffer).value,
 	}
 	if (packet['itemid'] != -1):
 		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
@@ -102,7 +102,7 @@ def decodeWindowItems(buffer):
 		'count':	nbt.TAG_Short(buffer=buffer).value,
 		'payload': 	[],
 	}
-	for num in range(packet['count']):
+	for num in xrange(packet['count']):
 		itemid = nbt.TAG_Short(buffer=buffer).value
 		if (itemid != -1):
 			count = nbt.TAG_Byte(buffer=buffer).value
@@ -193,7 +193,7 @@ decoders = {
 							('y',		nbt.TAG_Double),
 							('stance',	nbt.TAG_Double),
 							('z',		nbt.TAG_Double),
-							('flying',	nbt.TAG_Bool),])] },
+							('onground',nbt.TAG_Bool),])] },
 						
 	0x0C: {	'name':'playerlook',
 			'hooks': [],
@@ -473,8 +473,8 @@ def decode(direction, buffer, packetID):
 		for field in format:
 			try:
 				packet[field] = format[field](buffer=buffer).value
-			except:
-				print "error decoding"
+			except Exception as e:
+				print "error decoding %s->%s:%s(%s)"%(decoders[packetID]['name'], field, e.__class__.__name__, e)
 		#print packet
 	
 	#decode using specialized decoder
