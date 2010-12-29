@@ -4,7 +4,7 @@
 # serverprops	class				see mcproxy.py for details
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
-import positioning, gui, mcpackets, commands
+import positioning, gui, mcpackets, commands, items
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']
@@ -84,6 +84,22 @@ def chatCommand(packetid, packet, serverprops):
 			command = packet['message'][1:].split(" ")
 			commands.runCommand(serverprops,command)
 			packet['dir'] = None
+			return packet
+		elif packet['message'].startswith('/give '):
+			msg = packet['message'].split(" ")
+			item = msg[2]
+			try:
+				itemnum = int(item)
+			except ValueError:
+				if item in items.id2underName:
+					itemnum = items.id2underName[item]
+				elif item in items.item2underName:
+					itemnum = items.item2underName[item]
+				else:
+					print "Unknown item: " + item
+					return {}
+			msg[2] = str(itemnum)
+			packet['message'] = " ".join(msg)
 			return packet
 
 def invincible(packetid, packet, serverprops):
