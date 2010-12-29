@@ -94,7 +94,7 @@ def encodeBlockPlace(buffer, packet):
 	nbt.TAG_Int(value=packet['x'])._render_buffer(buffer)
 	nbt.TAG_Byte(value=packet['y'])._render_buffer(buffer)
 	nbt.TAG_Int(value=packet['z'])._render_buffer(buffer)
-	nbt.TAG_Byte(value=packet['Direction'])._render_buffer(buffer)
+	nbt.TAG_Byte(value=packet['direction'])._render_buffer(buffer)
 	nbt.TAG_Short(value=packet['itemid'])._render_buffer(buffer)
 	if (packet['itemid'] > 0):
 		nbt.TAG_Byte(value=packet['amount'])._render_buffer(buffer)

@@ -152,7 +152,7 @@ def fill(serverprops, command):
 					
 					if block!=0:
 						#place block
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						packet = {'dir':'c2s', 'itemid':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1, 'amount': 1, 'damage': 0} #direction: +X
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
@@ -240,7 +240,7 @@ def circle (serverprops, command):
 					
 						if block!=0:
 							#place block
-							packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+							packet = {'dir':'c2s', 'itemid':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1, 'amount': 1, 'damage': 0} #direction: +X
 							encpacket = mcpackets.encode('c2s', 0x0F, packet)
 							serverprops.comms.serverqueue.put(encpacket)
 							
@@ -278,7 +278,7 @@ def tower (serverprops, command):
 				
 				if block!=0:
 						#place block
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						packet = {'dir':'c2s', 'itemid':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1, 'amount': 1, 'damage': 0} #direction: +X
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
@@ -308,7 +308,7 @@ def entomb(serverprops, command):
 				for z in xrange(their_z -2, their_z + 2):
 					
 					if block!=0:
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						packet = {'dir':'c2s', 'itemid':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1, 'amount': 1, 'damage': 0} #direction: +X
 						print packet
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
@@ -334,7 +334,7 @@ def entombme (serverprops, command):
 				for z in xrange(my_z -2, my_z + 3):
 					if block!=0:
 						#place block
-						packet = {'dir':'c2s', 'type':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1} #direction: +X
+						packet = {'dir':'c2s', 'itemid':block, 'x':x, 'y':y-1, 'z':z, 'direction': 1, 'amount': 20, 'damage': 0} #direction: +X
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
