@@ -71,6 +71,7 @@ class MainWindow(QtGui.QWidget):
 		wpbtns.addWidget(gui['wpdel'])
 		wpbtns.addWidget(gui['wpcomp'])
 		wpbtns.addWidget(gui['wptele'])
+		QtCore.QObject.connect(gui['wpdel'], QtCore.SIGNAL("clicked()"), self.removeWayPoint)
 		QtCore.QObject.connect(gui['wpcomp'], QtCore.SIGNAL("clicked()"), self.compassWayPoint)
 		QtCore.QObject.connect(gui['wptele'], QtCore.SIGNAL("clicked()"), self.Teleport)
 		grid.addLayout(wpbtns,5,1)
@@ -133,9 +134,7 @@ class MainWindow(QtGui.QWidget):
 	def wayPointSelected(self, current=None, previous=None):
 		selwp = str(current.text())
 		self.serverprops.currentwp = selwp
-		print "selected waypoint: %s" % selwp
 		self.serverprops.gui['wpname'].setText(selwp)
-		print self.serverprops.waypoint
 		if selwp in self.serverprops.waypoint:
 			self.serverprops.gui['wploc'].setText("%.2f,%.2f,%.2f" % self.serverprops.waypoint[selwp])
 		else:
@@ -166,10 +165,12 @@ class MainWindow(QtGui.QWidget):
 			positioning.saveWaypoints(self.serverprops)
 	
 	def removeWayPoint(self):
-		pass
-	
+		del self.serverprops.waypoint[self.serverprops.currentwp]
+		removeFromMenu(self.serverprops.gui['wplist'],self.serverprops.currentwp)
+		positioning.saveWaypoints(self.serverprops)
+
 	def Teleport(self):
-		hooks.addHook(self.serverprops,'overridePlayerPos')
+		#hooks.addHook(self.serverprops,'overridePlayerPos')
 		wploc = self.serverprops.waypoint[self.serverprops.currentwp]
 		my_x = int(math.floor(self.serverprops.playerdata['location'][0]))
 		my_y = int(math.floor(self.serverprops.playerdata['location'][1]))
@@ -205,7 +206,7 @@ class MainWindow(QtGui.QWidget):
 			print("X:%s Y:%s Z:%s to X:%s Y:%s Z:%s %s%s%s" % (my_x, my_y, my_z, wploc[0], wploc[1], wploc[2],x_reached, y_reached, z_reached))
 			time.sleep(0.05)
 										
-			packet = {'x':my_x, 'y':my_y, 'stance':0, 'z':my_z, 'flying':0}
+			packet = {'x':my_x, 'y':my_y, 'stance':0, 'z':my_z, 'onground':0}
 			encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['playerposition'],packet)
 			self.serverprops.comms.clientqueue.put(encpacket)
 		hooks.removeHook(self.serverprops,'overridePlayerPos')

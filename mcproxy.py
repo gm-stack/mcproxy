@@ -5,6 +5,7 @@ from threading import Thread, RLock
 from binascii import hexlify
 
 import mcpackets, nbt, hooks, items, commands, modules
+import playerMessage
 
 import os, sys
 sys.path.append(os.path.abspath(__file__))
@@ -181,6 +182,8 @@ def startNetworkSockets(serverprops):
 			clientthread = Thread(target=sock_foward, name="ServerToClient", args=("s2c", serversocket, clientsocket, serverprops.comms.clientqueue, serverprops))
 			clientthread.setDaemon(True)
 			clientthread.start()
+			
+			playerMessage.printToPlayer(serverprops,"MCProxy active. #help for commands.")
 			
 			#wait for something bad to happen :(
 			serverthread.join()

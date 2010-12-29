@@ -55,31 +55,6 @@ def hook(serverprops, command):
 				for hook in decoder['hooks']:
 					print("%s: %s" % (decoder['name'], hooks.hook_to_name[hook]))
 
-def addtoinv(serverprops, command):
-	if len(command) == 1:
-		print "addtoinv [itemID|itemName] [quantity]"
-	if (len(command) == 2) or (len(command) == 3):
-		if len(command) == 2:
-			amount = 1
-		else:
-			amount = int(command[2])
-		haveitem = 0
-		try:
-			itemtype = int(command[1])
-			haveitem = 1
-		except ValueError:
-			if command[1] in items.id2underName:
-				itemtype = items.id2underName[command[1]]
-				haveitem = 1
-			elif command[1] in items.item2underName:
-				itemtype = items.item2underName[command[1]]
-				haveitem = 1
-		if haveitem:
-			packet = { 'itemtype': itemtype, 'amount': amount, 'life': 0}
-			serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['addtoinv'],packet))
-		else:
-			print "unknown item"
-
 def setslot(serverprops,command):
 	slot = int(command[1])
 	btype  = int(command[2])
@@ -87,7 +62,7 @@ def setslot(serverprops,command):
 	serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['setslot'],packet))
 
 def testchat(serverprops, command):
-	packet = { 'message': 'lol'}
+	packet = { 'message': 'test'}
 	encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['chat'],packet)
 	serverprops.comms.clientqueue.put(encpacket)
 	print "packet sent"
@@ -368,7 +343,6 @@ commandlist = {
 	'filter':filter,
 	'hexdump':hexdump,
 	'help':help,
-	'addtoinv':addtoinv,
 	'testchat':testchat,
 	'testpos':testpos,
 	'inventory':inventory,
