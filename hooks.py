@@ -13,17 +13,25 @@ def timeHook(packetid, packet, serverprops):
 	serverprops.playerdata['time'] = (mchour,mcminute)
 	serverprops.gui['time'].setText("%i:%.2i" % serverprops.playerdata['time'])
 
-def playerPosHook(packetid, packet, serverprops):
-	serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
-	serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
-	gui.playerDataUpdate(serverprops)
-
-def playerLookHook(packetid, packet, serverprops):
-	serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
-	rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
-	pitch = serverprops.playerdata['angle'][1]
-	serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
-	gui.playerDataUpdate(serverprops)
+def playerPosAngleHook(packetid, packet, serverprops): # todo: clean this up
+	if (packetid == 11): # playerposition
+		serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
+		serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
+		gui.playerDataUpdate(serverprops)
+	elif (packetid == 12): # playerlook
+		serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
+		rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
+		pitch = serverprops.playerdata['angle'][1]
+		serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
+		gui.playerDataUpdate(serverprops)
+	elif (packetid == 13): # playermovelook
+		serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
+		serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
+		serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
+		rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
+		pitch = serverprops.playerdata['angle'][1]
+		serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
+		gui.playerDataUpdate(serverprops)
 
 def timeChangeHook(packetid, packet, serverprops):
 	packet['time'] = 9000
@@ -46,15 +54,6 @@ def spawnHook(packetid, packet, serverprops):
 def overridePlayerPos(packetid, packet, serverprops):
 	if packet['dir'] == 's2c':
 		return {}
-
-def overridePlayerInventory(packetid, packet, serverprops):
-	if packet['dir'] == 'c2s':
-		return {}
-
-current_inv = {}
-def inventoryTracker(packetid, packet, serverprops):
-	if packet['type']==1:
-		current_inv = packet['items']
 	
 def playertracking(packetid, packet, serverprops):
 	if packetid == 0x14: #named entity spawn
@@ -91,19 +90,21 @@ def invincible(packetid, packet, serverprops):
 	packet['health'] = 20
 	return packet
 
+def slotHook(packetid, packet, serverprops):
+	packet['itemid'] = 46
+	return packet
+
 namedhooks = {
-	'timeHook': 		{'func': timeHook, 			'packets': ['time']},
-	'playerPosHook': 	{'func': playerPosHook,		'packets': ['playerposition']},
-	'playerLookHook':	{'func': playerLookHook,	'packets': ['playerlook']},
+	'timeHook': 			{'func': timeHook, 			'packets': ['time']},
+	'playerPosAngleHook': 	{'func': playerPosAngleHook,		'packets': ['playerposition','playerlook','playermovelook']},
 	'viewCustomEntities':{'func': viewCustomEntities,'packets': ['complexent']},
-	'inventoryTracker':	{'func': inventoryTracker,	'packets': ['inventory']},
 	'timeChangeHook':	{'func': timeChangeHook, 	'packets': ['time']},
 	'spawnPosition':	{'func': spawnHook, 		'packets': ['spawnposition']},
 	'overridePlayerPos':{'func': overridePlayerPos,	'packets': ['playermovelook']},
 	'playertracking':	{'func': playertracking,	'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']},
 	'chatcommands':		{'func': chatCommand,		'packets': ['chat']},
-	'overridePlayerInventory': {'func':overridePlayerInventory, 'packets': ['inventory']},
 	'invincible':		{'func': invincible,		'packets': ['health']},	
+	'slothook':			{'func': slotHook,			'packets':['setslot']},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
@@ -131,8 +132,7 @@ def setupInitialHooks(serverprops):
 	for hook in namedhooks:
 		serverprops.gui['hooklist'].addItem(hook)
 	addHook(serverprops,'timeHook')
-	addHook(serverprops,'playerPosHook')
-	addHook(serverprops,'playerLookHook')
+	addHook(serverprops,'playerPosAngleHook')
 	addHook(serverprops,'spawnPosition')
 	addHook(serverprops,'timeChangeHook')
 	addHook(serverprops,'chatcommands')

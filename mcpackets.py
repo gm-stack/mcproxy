@@ -2,35 +2,7 @@ import struct
 import nbt
 from collections import OrderedDict as od
 from StringIO import StringIO
-from hooks import inventoryTracker
 # thanks to http://mc.kev009.com/wiki/Protocol
-
-def decodeInventory(buffer):
-	packet = {
-		'type':		nbt.TAG_Int(buffer=buffer).value,
-		'count':	nbt.TAG_Short(buffer=buffer).value,
-		'items':	{}
-	}
-		
-	for num in range(packet['count']):
-		itemid = nbt.TAG_Short(buffer=buffer).value
-		if (itemid != -1):
-			count = nbt.TAG_Byte(buffer=buffer).value
-			health = nbt.TAG_Short(buffer=buffer).value
-			packet['items'][num] = {'itemid': itemid, 'count': count, 'health': health}
-		else:
-			packet['items'][num] = None
-	
-	return packet
-
-def encodeInventory(buffer, packet):
-	nbt.TAG_Int(value=packet['type'])._render_buffer(buffer)
-	nbt.TAG_Short(value=packet['count'])._render_buffer(buffer)
-	for item in iter(sorted(packet['items'])):
-		nbt.TAG_Short(value=item[0])._render_buffer(buffer)
-		if item[1]['itemid']!=0:
-			nbt.TAG_Byte(value=item[1]['count'])._render_buffer(buffer)
-			nbt.TAG_Short(value=item[1]['health']).render_buffer(buffer)
 
 def decodeMultiBlockChange(buffer):
 	packet = {
@@ -96,6 +68,38 @@ def decodeSetSlot(buffer):
 		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
 	return packet
 
+def encodeSetSlot(buffer, packet):
+	nbt.TAG_Byte(value=packet['windowid'])._render_buffer(buffer)
+	nbt.TAG_Short(value=packet['slotid'])._render_buffer(buffer)
+	nbt.TAG_Short(value=packet['itemid'])._render_buffer(buffer)
+	print packet['itemid']
+	if (packet['itemid'] != -1):
+		nbt.TAG_Byte(value=packet['itemcount'])._render_buffer(buffer)
+		nbt.TAG_Byte(value=packet['itemuses'])._render_buffer(buffer)
+
+def decodeBlockPlace(buffer):
+	packet = {
+		'x':			nbt.TAG_Int(buffer=buffer).value,
+		'y':			nbt.TAG_Byte(buffer=buffer).value,
+		'z': 			nbt.TAG_Int(buffer=buffer).value,
+		'Direction': 	nbt.TAG_Byte(buffer=buffer).value,
+		'itemid': 		nbt.TAG_Short(buffer=buffer).value,
+	}
+	if (packet['itemid'] > 0):
+		packet['amount'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['damage'] = nbt.TAG_Byte(buffer=buffer).value
+	return packet
+
+def encodeBlockPlace(buffer, packet):
+	nbt.TAG_Int(value=packet['x'])._render_buffer(buffer)
+	nbt.TAG_Byte(value=packet['y'])._render_buffer(buffer)
+	nbt.TAG_Int(value=packet['z'])._render_buffer(buffer)
+	nbt.TAG_Byte(value=packet['Direction'])._render_buffer(buffer)
+	nbt.TAG_Short(value=packet['itemid'])._render_buffer(buffer)
+	if (packet['itemid'] > 0):
+		nbt.TAG_Byte(value=packet['amount'])._render_buffer(buffer)
+		nbt.TAG_Byte(value=packet['damage'])._render_buffer(buffer)
+
 def decodeWindowItems(buffer):
 	packet = {
 		'type':		nbt.TAG_Byte(buffer=buffer).value,
@@ -147,9 +151,7 @@ decoders = {
 	0x04: {	'name':'time',
 			'hooks': [],
 			'format': [od([ ('time',		nbt.TAG_Long)])]},
-	
-	#0x05: {	'name':'inventory', 'decoders': [decodeInventory], 'encoders':[encodeInventory], 'hooks':[]},
-	
+		
 	0x05: { 'name':'entityequipment',
 			'hooks': [],
 			'format': [od([ ('entityID',	nbt.TAG_Int),
@@ -232,11 +234,8 @@ decoders = {
 						
 	0x0F: {	'name':'blockplace',
 			'hooks': [],
-			'format': [od([	('type',			nbt.TAG_Short),
-							('x',				nbt.TAG_Int),
-							('y',				nbt.TAG_Byte),
-							('z',				nbt.TAG_Int),
-							('direction',		nbt.TAG_Byte),])] },
+			'decoders' : [decodeBlockPlace],
+			'encoders' : [encodeBlockPlace], },
 					
 	#more playerstate
 	
@@ -244,17 +243,7 @@ decoders = {
 	0x10: { 'name':'holding',
 			'hooks':[],
 			'format': [od([ ('item', nbt.TAG_Short), ])],},
-	
-	#0x10: {	'name':'blockitemswitch',
-	# 		'hooks': [],
-	# 		'format': [od([	('entityID',		nbt.TAG_Int),
-	#						('itemID',			nbt.TAG_Short),])] },
-	
-	#0x11: {	'name':'addtoinv',
-	#		'hooks': [],
-	#		'format': [od([	('itemtype',	nbt.TAG_Short),
-	#						('amount',		nbt.TAG_Byte),
-	#						('life',		nbt.TAG_Short),])] },
+
 	
 	0x12: {	'name':'armanim',
 			'hooks': [],
@@ -393,20 +382,13 @@ decoders = {
 							('y',	nbt.TAG_Byte),
 							('z',	nbt.TAG_Int),
 							('type',nbt.TAG_Byte),
-							('meta',nbt.TAG_Byte),])] },
-					
-	#testing packet
-	
-	#0x3B: {	'name':'complexent', 		
-	#		'decoders': [decodeComplexEntity],		
-	#		'hooks': []},
+							('meta',nbt.TAG_Byte),])] },	
 	
 	0x3C: { 'name':'explosion',
 			'hooks':[],
 			'decoders': [decodeExplosion],
 			},
 	
-	#unknown
 	
 	0x64: { 'name':'openwindow',
 			'hooks': [],
@@ -425,7 +407,8 @@ decoders = {
 	
 	0x67: { 'name':'setslot',
 			'hooks': [],
-			'decoders' : [decodeSetSlot],},
+			'decoders' : [decodeSetSlot],
+			'encoders' : [encodeSetSlot],},
 	
 	0x68: { 'name':'windowitems',
 			'hooks': [],
@@ -498,19 +481,20 @@ def encode(direction, packetID, packet):
 	
 	if not (packet.has_key('dir') and packet['dir']==None):
 		#encode by format description
-		if packet_desc['format']:
+		if packet_desc.has_key('format'):
 			format = packet_desc['format'][{"s2c":0,"c2s":-1}[direction]]
 			#render packet to buffer
 			for field in format:
 				format[field](value=packet[field])._render_buffer(outbuff)
 				
 		#revert to specialised encoder
-		elif packet_desc['encoders']:
+		elif packet_desc.has_key('encoders'):
 			encoder = packet_desc['encoders'][{"s2c":0,"c2s":-1}[direction]]
-			encoder(buffer, packet)
+			encoder(outbuff, packet)
 			
 		#i am error
 		else:
 			print("unable to render packetID", packetID)
+			print "packet has %s" % has
 	
 	return outbuff.getvalue()

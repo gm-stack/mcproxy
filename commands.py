@@ -80,6 +80,12 @@ def addtoinv(serverprops, command):
 		else:
 			print "unknown item"
 
+def setslot(serverprops,command):
+	slot = int(command[1])
+	btype  = int(command[2])
+	packet = { 'itemid': btype, 'slotid': slot, 'windowid': 0, 'itemcount': 1, 'itemuses': 0}
+	serverprops.comms.clientqueue.put(mcpackets.encode("s2c",mcpackets.name_to_id['setslot'],packet))
+
 def testchat(serverprops, command):
 	packet = { 'message': 'lol'}
 	encpacket = mcpackets.encode("s2c",mcpackets.name_to_id['chat'],packet)
@@ -373,6 +379,7 @@ commandlist = {
 	#'entomb':entomb,
 	#'apocalypsennow':apocalypse,
 	'entombme':entombme,
+	'setslot':setslot,
 }
 
 def runCommand(serverprops,command):
