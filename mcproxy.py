@@ -145,7 +145,7 @@ def startNetworkSockets(serverprops):
 			# Client Socket
 			listensocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			listensocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-			listensocket.bind(('127.0.0.1', 1234)) # 25565
+			listensocket.bind(('127.0.0.1', 1235)) # 25565
 			listensocket.listen(1)
 			print("Waiting for connection...")
 			

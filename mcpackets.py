@@ -65,7 +65,7 @@ def decodeSetSlot(buffer):
 	}
 	if (packet['itemid'] != -1):
 		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
-		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['itemuses'] = nbt.TAG_Short(buffer=buffer).value
 	return packet
 
 def encodeSetSlot(buffer, packet):
@@ -114,6 +114,54 @@ def decodeWindowItems(buffer):
 			packet['payload'].append({'itemid': itemid, 'count': count, 'uses': uses})
 	return packet
 
+def decodeMobSpawn(buffer):
+	packet = {
+		'uniqueID':		nbt.TAG_Int(buffer=buffer).value,
+		'mobtype':		nbt.TAG_Byte(buffer=buffer).value,
+		'x':			nbt.TAG_Int(buffer=buffer).value,
+		'y':			nbt.TAG_Int(buffer=buffer).value,
+		'z': 			nbt.TAG_Int(buffer=buffer).value,
+		'rotation': 	nbt.TAG_Byte(buffer=buffer).value,
+		'pitch': 		nbt.TAG_Byte(buffer=buffer).value,
+	}
+	packet['insanity'] = decodeInsanity(buffer)
+	return packet
+
+def decodeUnknown(buffer):
+	packet = {
+		'unknown1':		nbt.TAG_Int(buffer=buffer).value,
+	}
+	packet['insanity'] = decodeInsanity(buffer)
+	return packet
+
+def decodeInsanity(buffer):
+	objects = []
+	while 1:
+		i = nbt.TAG_Byte(buffer=buffer).value
+		if (i == 127): return objects
+		j = (i & 0xE0) >> 5
+		k = i & 0x1F
+		val = None
+		if (j == 0):
+			val = nbt.TAG_Byte(buffer=buffer).value
+		elif (j == 1):
+			val = nbt.TAG_Short(buffer=buffer).value
+		elif (j == 2):
+			val = nbt.TAG_Int(buffer=buffer).value
+		elif (j == 3):
+			val = nbt.TAG_Float(buffer=buffer).value
+		elif (j == 4):
+			val = nbt.TAG_String(buffer=buffer).value
+		elif (j == 5):
+			m = nbt.TAG_Short(buffer=buffer).value
+			n = nbt.TAG_Byte(buffer=buffer).value
+			i1 = nbt.TAG_Short(buffer=buffer).value
+			val = [m,n,i1]
+		else:
+			print "unknown tag"
+		objects.append(val)
+
+
 # name is name of packet
 # decoders is a set of functions which define specialty decoders
 # encoders is a set of functions which define specialty encoders
@@ -156,7 +204,8 @@ decoders = {
 			'hooks': [],
 			'format': [od([ ('entityID',	nbt.TAG_Int),
 							('slot',	nbt.TAG_Short),
-							('itemID',	nbt.TAG_Short),])] },
+							('itemID',	nbt.TAG_Short),
+							('???',		nbt.TAG_Short),])] },
 	
 	0x06: {	'name':'spawnposition',
 			'hooks': [],
@@ -184,6 +233,7 @@ decoders = {
 	0x10: { 'name': 'holdingchange',
 			'hooks': [],
 			'format': [od([	('itemID', nbt.TAG_Short) ])], },
+	
 	# playerstate packets	
 	0x0A: {	'name':'flying',
 			'hooks': [], 
@@ -249,7 +299,12 @@ decoders = {
 			'hooks': [],
 			'format': [od([	('entityID',	nbt.TAG_Int),
 							('Animate',		nbt.TAG_Byte),])] },
-		
+	
+	0x13: { 'name':'Unknown',
+			'hooks': [],
+			'format': [od([ ('unknown1',	nbt.TAG_Int),
+							('unknown2',	nbt.TAG_Byte),])] },
+	
 	#entities
 	
 	0x14: {	'name':'namedentspawn',
@@ -268,6 +323,7 @@ decoders = {
 			'format': [od([	('uniqueID',	nbt.TAG_Int),
 							('item',		nbt.TAG_Short),
 							('count',		nbt.TAG_Byte),
+							('unknown1',	nbt.TAG_Short),
 							('x',			nbt.TAG_Int),
 							('y',			nbt.TAG_Int),
 							('z',			nbt.TAG_Int),
@@ -290,13 +346,16 @@ decoders = {
 	
 	0x18: {	'name':'mobspawn',
 			'hooks': [],
-			'format': [od([	('uniqueID',	nbt.TAG_Int),
-							('mobtype',		nbt.TAG_Byte),
-							('x',			nbt.TAG_Int),
-							('y',			nbt.TAG_Int),
-							('z',			nbt.TAG_Int),
-							('rotation',	nbt.TAG_Byte),
-							('pitch',		nbt.TAG_Byte),])] },
+			'decoders': [decodeMobSpawn], },
+	
+	0x19: { 'name':'unknown',
+			'hooks': [],
+			'format': [od([ ('unknown1',	nbt.TAG_Int),
+							('unknown2',	nbt.TAG_String),
+							('unknown3',	nbt.TAG_Int),
+							('unknown4',	nbt.TAG_Int),
+							('unknown5',	nbt.TAG_Int),
+							('unknown6',	nbt.TAG_Int), ])] },
 	
 	0x1C: { 'name':'entvelocity',
 			'hooks': [],
@@ -353,6 +412,10 @@ decoders = {
 			'hooks': [],
 			'format': [od([	('entID', 		nbt.TAG_Int),
 							('vehicleID',	nbt.TAG_Int),])] },
+	
+	0x28: {	'name':'unknown',
+			'hooks': [],
+			'decoders': [decodeUnknown], },
 	#map
 	
 	0x32: {	'name':'prechunk',
@@ -383,6 +446,15 @@ decoders = {
 							('z',	nbt.TAG_Int),
 							('type',nbt.TAG_Byte),
 							('meta',nbt.TAG_Byte),])] },	
+	
+	0x36: { 'name':'unknown',
+			'hooks': [],
+			'format': [od([ ('unknown1',nbt.TAG_Int),
+							('unknown2',nbt.TAG_Short),
+							('unknown3',nbt.TAG_Int),
+							('unknown4',nbt.TAG_Byte),
+							('unknown5',nbt.TAG_Byte),])] },
+			
 	
 	0x3C: { 'name':'explosion',
 			'hooks':[],
