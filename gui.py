@@ -143,7 +143,13 @@ class MainWindow(QtGui.QWidget):
 		# add stack label
 		stacklayout = QtGui.QGridLayout()
 		stacklayout.addWidget(QtGui.QLabel("Stack from top to bottom:"),1,1)
-		gui['stacklist'] = QtGui.QLabel("<b>Item 1</b>\nItem 2\nItem 3\nItem 4\nItem 5\nItem 6\nItem 7")
+		gui['stacklist'] = QtGui.QLabel("""<font color="red">Item 1</font><br>
+Item 2<br>
+Item 3<br>
+Item 4<br>
+Item 5<br>
+Item 6<br>
+Item 7<br>""")
 		stacklayout.addWidget(gui['stacklist'],2,1,4,1)
 		grid.addLayout(stacklayout,5,2,5,2)
 		

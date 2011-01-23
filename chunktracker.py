@@ -62,12 +62,8 @@ def getBlockStack(x,z):
 
 def printitem(itemid):
 	name = items.blockids[itemid]
-	#if itemid in [16]: #tier 1
-	#	return "<text color=red>"+name+"</text>"
-	#if itemid in [15, 14, 42, 41]: #tier 2
-	#	return "\033[33m"+name+"\033[0m"
-	#if itemid in [56, 57, 21, 22]:
-	#	return "\033[35m"+name+"\033[0m"
+	#if itemid in items.blockcolours:
+	#	return "<font color=\"%s\">%s</text>" % ("#000000", name) # items.blockcolours[itemid]
 	#else:
 	return name
 
