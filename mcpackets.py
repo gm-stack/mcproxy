@@ -94,7 +94,7 @@ def encodeBlockPlace(buffer, packet):
 	nbt.TAG_Int(value=packet['x'])._render_buffer(buffer)
 	nbt.TAG_Byte(value=packet['y'])._render_buffer(buffer)
 	nbt.TAG_Int(value=packet['z'])._render_buffer(buffer)
-	nbt.TAG_Byte(value=packet['direction'])._render_buffer(buffer)
+	nbt.TAG_Byte(value=packet['Direction'])._render_buffer(buffer)
 	nbt.TAG_Short(value=packet['itemid'])._render_buffer(buffer)
 	if (packet['itemid'] > 0):
 		nbt.TAG_Byte(value=packet['amount'])._render_buffer(buffer)
@@ -127,14 +127,15 @@ def decodeMobSpawn(buffer):
 	packet['insanity'] = decodeInsanity(buffer)
 	return packet
 
-def decodeUnknown(buffer):
+def decodeMetadata(buffer):
 	packet = {
-		'unknown1':		nbt.TAG_Int(buffer=buffer).value,
+		'entid':		nbt.TAG_Int(buffer=buffer).value,
 	}
 	packet['insanity'] = decodeInsanity(buffer)
 	return packet
 
 def decodeInsanity(buffer):
+	print "decoding insanity... this may not go well"
 	objects = []
 	while 1:
 		i = nbt.TAG_Byte(buffer=buffer).value
@@ -300,10 +301,10 @@ decoders = {
 			'format': [od([	('entityID',	nbt.TAG_Int),
 							('Animate',		nbt.TAG_Byte),])] },
 	
-	0x13: { 'name':'Unknown',
+	0x13: { 'name':'entaction',
 			'hooks': [],
-			'format': [od([ ('unknown1',	nbt.TAG_Int),
-							('unknown2',	nbt.TAG_Byte),])] },
+			'format': [od([ ('entid',	nbt.TAG_Int),
+							('action',	nbt.TAG_Byte),])] },
 	
 	#entities
 	
@@ -348,14 +349,14 @@ decoders = {
 			'hooks': [],
 			'decoders': [decodeMobSpawn], },
 	
-	0x19: { 'name':'unknown',
+	0x19: { 'name':'Painting',
 			'hooks': [],
-			'format': [od([ ('unknown1',	nbt.TAG_Int),
-							('unknown2',	nbt.TAG_String),
-							('unknown3',	nbt.TAG_Int),
-							('unknown4',	nbt.TAG_Int),
-							('unknown5',	nbt.TAG_Int),
-							('unknown6',	nbt.TAG_Int), ])] },
+			'format': [od([ ('Entity ID',	nbt.TAG_Int),
+							('Title',		nbt.TAG_String),
+							('X',			nbt.TAG_Int),
+							('Y',			nbt.TAG_Int),
+							('Z',			nbt.TAG_Int),
+							('Type',		nbt.TAG_Int), ])] },
 	
 	0x1C: { 'name':'entvelocity',
 			'hooks': [],
@@ -413,9 +414,9 @@ decoders = {
 			'format': [od([	('entID', 		nbt.TAG_Int),
 							('vehicleID',	nbt.TAG_Int),])] },
 	
-	0x28: {	'name':'unknown',
+	0x28: {	'name':'Entity Metadata',
 			'hooks': [],
-			'decoders': [decodeUnknown], },
+			'decoders': [decodeMetadata], },
 	#map
 	
 	0x32: {	'name':'prechunk',
@@ -447,13 +448,13 @@ decoders = {
 							('type',nbt.TAG_Byte),
 							('meta',nbt.TAG_Byte),])] },	
 	
-	0x36: { 'name':'unknown',
+	0x36: { 'name':'playnote',
 			'hooks': [],
-			'format': [od([ ('unknown1',nbt.TAG_Int),
-							('unknown2',nbt.TAG_Short),
-							('unknown3',nbt.TAG_Int),
-							('unknown4',nbt.TAG_Byte),
-							('unknown5',nbt.TAG_Byte),])] },
+			'format': [od([ ('x',nbt.TAG_Int),
+							('y',nbt.TAG_Short),
+							('z',nbt.TAG_Int),
+							('instrumenttype',nbt.TAG_Byte),
+							('pitch',nbt.TAG_Byte),])] },
 			
 	
 	0x3C: { 'name':'explosion',

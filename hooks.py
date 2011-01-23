@@ -110,6 +110,10 @@ def slotHook(packetid, packet, serverprops):
 	packet['itemid'] = 46
 	return packet
 
+def blockDigHook(packetid, packet, serverprops):
+	packet['status'] = 3
+	return packet
+
 namedhooks = {
 	'timeHook': 			{'func': timeHook, 			'packets': ['time']},
 	'playerPosAngleHook': 	{'func': playerPosAngleHook,		'packets': ['playerposition','playerlook','playermovelook']},
@@ -120,7 +124,8 @@ namedhooks = {
 	'playertracking':	{'func': playertracking,	'packets': ['namedentspawn', 'relentmove', 'relentmovelook', 'destroyent']},
 	'chatcommands':		{'func': chatCommand,		'packets': ['chat']},
 	'invincible':		{'func': invincible,		'packets': ['health']},	
-	'slothook':			{'func': slotHook,			'packets':['setslot']},
+	'slothook':			{'func': slotHook,			'packets': ['setslot']},
+	'blockdighook':		{'func': blockDigHook,		'packets': ['blockdig']},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
