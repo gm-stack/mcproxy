@@ -16,21 +16,13 @@ def timeHook(packetid, packet, serverprops):
 def playerPosAngleHook(packetid, packet, serverprops): # todo: clean this up
 	if (packetid == 11): # playerposition
 		serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
-		serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
 		gui.playerDataUpdate(serverprops)
 	elif (packetid == 12): # playerlook
 		serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
-		rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
-		pitch = serverprops.playerdata['angle'][1]
-		serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
 		gui.playerDataUpdate(serverprops)
 	elif (packetid == 13): # playermovelook
 		serverprops.playerdata['angle'] = (packet['rotation'],packet['pitch'])
 		serverprops.playerdata['location'] = (packet['x'], packet['y'], packet['z'])
-		serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
-		rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
-		pitch = serverprops.playerdata['angle'][1]
-		serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(packet['rotation'])))
 		gui.playerDataUpdate(serverprops)
 
 def timeChangeHook(packetid, packet, serverprops):

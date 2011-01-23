@@ -345,7 +345,7 @@ def stack (serverprops, command):
 	else:
 		x = int(command[1])
 		z = int(command[2])
-	chunktracker.getBlockStack(x,z)
+	print chunktracker.getBlockStack(x,z)
 	
 
 commandlist = {

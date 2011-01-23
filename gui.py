@@ -4,6 +4,7 @@ import positioning
 import hooks
 import mcpackets
 import math
+import chunktracker
 from PyQt4 import QtGui, QtCore
 
 framerate = 30
@@ -15,6 +16,17 @@ def start_gui(serverprops):
 	app.exec_()
 	
 def playerDataUpdate(serverprops):
+	if not 'location' in serverprops.playerdata:
+		return
+	serverprops.gui['pos'].setText("X: %.2f\nY: %.2f\nZ: %.2f" % serverprops.playerdata['location'])
+	rot = positioning.sane_angle(serverprops.playerdata['angle'][0])
+	pitch = serverprops.playerdata['angle'][1]
+	serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(rot)))
+	#FIXME: this should run only if the actual block has changed, not the fractional one
+	x = int(math.floor(serverprops.playerdata['location'][0]));
+	z = int(math.floor(serverprops.playerdata['location'][2]));
+	serverprops.gui['stacklist'].setText(chunktracker.getBlockStack(x,z))
+	
 	if serverprops.currentwp:
 		playerpos = serverprops.playerdata['location']
 		wppos = serverprops.waypoint[serverprops.currentwp]
@@ -127,6 +139,13 @@ class MainWindow(QtGui.QWidget):
 		QtCore.QObject.connect(gui['activate'], QtCore.SIGNAL("clicked()"), self.activateHook)
 		QtCore.QObject.connect(gui['deactivate'], QtCore.SIGNAL("clicked()"), self.deactivateHook)
 		grid.addLayout(hookgrid,0,2,5,2)
+		
+		# add stack label
+		stacklayout = QtGui.QGridLayout()
+		stacklayout.addWidget(QtGui.QLabel("Stack from top to bottom:"),1,1)
+		gui['stacklist'] = QtGui.QLabel("Item 1\nItem 2\nItem 3\nItem 4\nItem 5\nItem 6\nItem 7")
+		stacklayout.addWidget(gui['stacklist'],2,1,4,1)
+		grid.addLayout(stacklayout,5,2,5,2)
 		
 		
 		
