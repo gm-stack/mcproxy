@@ -135,7 +135,7 @@ def decodeMetadata(buffer):
 	return packet
 
 def decodeInsanity(buffer):
-	print "decoding insanity... this may not go well"
+	#print "decoding insanity... this may not go well"
 	objects = []
 	while 1:
 		i = nbt.TAG_Byte(buffer=buffer).value

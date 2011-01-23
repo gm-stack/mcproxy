@@ -1,5 +1,5 @@
 import hooks, mcpackets, items, math
-import mcpackets
+import mcpackets, chunktracker
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets
@@ -338,6 +338,16 @@ def entombme (serverprops, command):
 						encpacket = mcpackets.encode('c2s', 0x0F, packet)
 						serverprops.comms.serverqueue.put(encpacket)
 
+def stack (serverprops, command):
+	if len(command) == 1:
+		x = int(math.floor(serverprops.playerdata['location'][0]));
+		z = int(math.floor(serverprops.playerdata['location'][2]));
+	else:
+		x = int(command[1])
+		z = int(command[2])
+	chunktracker.getBlockStack(x,z)
+	
+
 commandlist = {
 	'dumpPackets':dumpPackets,
 	'filter':filter,
@@ -354,6 +364,7 @@ commandlist = {
 	#'apocalypsennow':apocalypse,
 	'entombme':entombme,
 	'setslot':setslot,
+	'stack':stack,
 }
 
 def runCommand(serverprops,command):

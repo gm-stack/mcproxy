@@ -4,7 +4,7 @@
 # serverprops	class				see mcproxy.py for details
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
-import positioning, gui, mcpackets, commands, items
+import positioning, gui, mcpackets, commands, items, chunktracker
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']
@@ -126,6 +126,7 @@ namedhooks = {
 	'invincible':		{'func': invincible,		'packets': ['health']},	
 	'slothook':			{'func': slotHook,			'packets': ['setslot']},
 	'blockdighook':		{'func': blockDigHook,		'packets': ['blockdig']},
+	'mapchunkhook':		{'func': chunktracker.addChunk,			'packets': ['mapchunk']},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
@@ -158,3 +159,4 @@ def setupInitialHooks(serverprops):
 	addHook(serverprops,'timeChangeHook')
 	addHook(serverprops,'chatcommands')
 	addHook(serverprops, 'playertracking')
+	addHook(serverprops, 'mapchunkhook')

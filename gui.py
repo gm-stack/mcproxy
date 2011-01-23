@@ -128,6 +128,8 @@ class MainWindow(QtGui.QWidget):
 		QtCore.QObject.connect(gui['deactivate'], QtCore.SIGNAL("clicked()"), self.deactivateHook)
 		grid.addLayout(hookgrid,0,2,5,2)
 		
+		
+		
 		# set window layout to the grid
 		self.setLayout(grid)
 	
