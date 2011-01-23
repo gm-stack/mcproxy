@@ -16,10 +16,20 @@ def addChunk(packetid, packet, serverprops):
 		print "ERROR: Chunk data size mismatch"
 	for x in range(size_x):
 		for z in range(size_z):
+			coord = (x,z)
+			stack = None
+			if coord in blocktype:
+				stack = blocktype[coord]
+			else:
+				stack = numpy.zeros(128)
+				blocktype[coord] = stack
 			for y in range(size_y):
 				index = y + (z * size_y) + (x * size_y * size_z)
 				btype = ord(chunkdata[index])
-				setBlockType(packet['x'] + x, packet['y'] + y, packet['z'] + z,btype) # FIXME: this seems to work...
+				stack[y] = btype
+				#setBlockType(packet['x'] + x, packet['y'] + y, packet['z'] + z,btype) # FIXME: this seems to work...
+				
+				
 		
 
 
