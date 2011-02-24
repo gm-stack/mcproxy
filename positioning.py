@@ -72,6 +72,12 @@ def humanReadableAngle(playerangle):
 	closest = angleNames[index]
 	return closest
 
+def coordsToPoint(playerpos,itempos):		
+		angle = compassDirection(playerpos,itempos)
+		hrangle = humanReadableAngle(angle)
+		distance = getDistance2D(playerpos,itempos)
+		return "%.2f blocks %s" % (distance,hrangle)
+
 def saveWaypoints(serverprops):
 	f = open("waypoints",'w')
 	for waypoint in serverprops.waypoint:

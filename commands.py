@@ -346,7 +346,14 @@ def stack (serverprops, command):
 		x = int(command[1])
 		z = int(command[2])
 	print chunktracker.getBlockStack(x,z,serverprops)
-	
+
+def find (serverprops, command):
+	x = serverprops.playerdata['fracpos'][0]
+	z = serverprops.playerdata['fracpos'][2]
+	dist = 64
+	btype = int(command[1])
+	chunktracker.findNearby(x,z,dist,btype,serverprops)
+
 
 commandlist = {
 	'dumpPackets':dumpPackets,
@@ -365,6 +372,7 @@ commandlist = {
 	'entombme':entombme,
 	'setslot':setslot,
 	'stack':stack,
+	'find':find,
 }
 
 def runCommand(serverprops,command):

@@ -1,4 +1,4 @@
-import numpy, items, zlib, playerMessage
+import numpy, items, zlib, playerMessage, positioning, gui
 
 blocktype = {}
 blockmeta = {}
@@ -11,6 +11,7 @@ alertblocks = [14, 41, #gold ore, block
 			   23, #dispenser
 			   54, #chest
 			   56, 57, #diamond ore, block
+			   48, #mossy cobblestone
 ]
 
 def addPacketChanges(packetid, packet, serverprops):
@@ -79,6 +80,28 @@ def getBlockStack(x,z,serverprops):
 		return "\n".join((["Warning: too complex"] + blist))
 	else:
 		return "\n".join(blist)
+
+def findNearby(x,z,dist,btype,serverprops):
+	found = []
+	for sx in range(x-dist,x+dist):
+		for sz in range(z-dist,z+dist):
+			coord = (sx,sz)
+			if coord in blocktype:
+				stack = blocktype[coord]
+				for sy in range(128):
+					if stack[sy] == btype:
+						found.append((sx,sy,sz))
+						break
+	mindist = dist+2 # it won't be larger...
+	closest_item = None
+	for item in found:
+		(sx,sy,sz) = item
+		dist = positioning.getDistance2D((x,0,z),item)
+		if dist < mindist:
+			closest_item = item
+	(sx,sy,sz) = closest_item
+	playerMessage.printToPlayer(serverprops,"Closest is at %i,%i,%i (%s)" % (sx,sy,sz, positioning.coordsToPoint((x,0,z),(sx,sy,sz)) ) )
+	gui.doAddWayPoint("Nearest Item",closest_item,serverprops)
 
 def printitem(itemid):
 	name = items.blockids[itemid]

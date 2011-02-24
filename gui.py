@@ -48,6 +48,11 @@ def removeFromMenu(menu,item):
 			menu.takeItem(i)
 			break
 
+def doAddWayPoint(name,loc,serverprops):
+	if not name in serverprops.waypoint:
+		serverprops.gui['wplist'].addItem(name)
+	serverprops.waypoint[name] = loc
+	positioning.saveWaypoints(serverprops)
 
 class MainWindow(QtGui.QWidget):
 	serverprops = None
@@ -174,10 +179,8 @@ Item 7<br>""")
 	def newWayPoint(self):
 		wpname = str(self.serverprops.gui['wpnamef'].text())
 		if wpname:
-			if not wpname in self.serverprops.waypoint:
-				self.serverprops.gui['wplist'].addItem(wpname)
-			self.serverprops.waypoint[wpname] = self.serverprops.playerdata['location']
-			positioning.saveWaypoints(self.serverprops)
+			doAddWayPoint(wpname,self.serverprops.playerdata['location'],self.serverprops)
+		
 	
 	def newWayPointWithLoc(self):
 		wpname = str(self.serverprops.gui['wpnamef'].text())
