@@ -63,7 +63,7 @@ class MainWindow(QtGui.QWidget):
 		
 		# add player info
 		grid.addWidget(QtGui.QLabel('Server:'),0,0)
-		gui['server'] = QtGui.QLineEdit('stackunderflow.com:25555')
+		gui['server'] = QtGui.QLineEdit('stackunderflow.com:25555' if len(sys.argv)<2 else sys.argv[1])
 		grid.addWidget(gui['server'],0,1)
 		
 		grid.addWidget(QtGui.QLabel('Current Time'), 1, 0)
