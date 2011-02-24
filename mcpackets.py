@@ -54,7 +54,7 @@ def decodeWindowClick(buffer):
 	}
 	if (packet['itemid'] != -1):
 		packet['itemcount'] = nbt.TAG_Byte(buffer=buffer).value
-		packet['itemuses'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['itemuses'] = nbt.TAG_Short(buffer=buffer).value
 	return packet
 
 def decodeSetSlot(buffer):
@@ -87,7 +87,7 @@ def decodeBlockPlace(buffer):
 	}
 	if (packet['itemid'] > 0):
 		packet['amount'] = nbt.TAG_Byte(buffer=buffer).value
-		packet['damage'] = nbt.TAG_Byte(buffer=buffer).value
+		packet['damage'] = nbt.TAG_Short(buffer=buffer).value
 	return packet
 
 def encodeBlockPlace(buffer, packet):
@@ -98,7 +98,7 @@ def encodeBlockPlace(buffer, packet):
 	nbt.TAG_Short(value=packet['itemid'])._render_buffer(buffer)
 	if (packet['itemid'] > 0):
 		nbt.TAG_Byte(value=packet['amount'])._render_buffer(buffer)
-		nbt.TAG_Byte(value=packet['damage'])._render_buffer(buffer)
+		nbt.TAG_Short(value=packet['damage'])._render_buffer(buffer)
 
 def decodeWindowItems(buffer):
 	packet = {

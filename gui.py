@@ -23,9 +23,12 @@ def playerDataUpdate(serverprops):
 	pitch = serverprops.playerdata['angle'][1]
 	serverprops.gui['angle'].setText("Rotation: %i\nPitch: %i\nDirection: %s" % (rot, pitch, positioning.humanReadableAngle(rot)))
 	#FIXME: this should run only if the actual block has changed, not the fractional one
-	x = int(math.floor(serverprops.playerdata['location'][0]));
-	z = int(math.floor(serverprops.playerdata['location'][2]));
-	serverprops.gui['stacklist'].setText(chunktracker.getBlockStack(x,z))
+	
+	if not 'fracpos' in serverprops.playerdata: serverprops.playerdata['fracpos'] = (0,0,0)
+	fracpos = (int(math.floor(serverprops.playerdata['location'][0])), int(math.floor(serverprops.playerdata['location'][1])), int(math.floor(serverprops.playerdata['location'][2])))
+	if serverprops.playerdata['fracpos'] != fracpos:
+		serverprops.playerdata['fracpos'] = fracpos
+		serverprops.gui['stacklist'].setText(chunktracker.getBlockStack(serverprops.playerdata['fracpos'][0],serverprops.playerdata['fracpos'][2],serverprops))
 	
 	if serverprops.currentwp:
 		playerpos = serverprops.playerdata['location']

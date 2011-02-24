@@ -118,7 +118,7 @@ namedhooks = {
 	'invincible':		{'func': invincible,		'packets': ['health']},	
 	'slothook':			{'func': slotHook,			'packets': ['setslot']},
 	'blockdighook':		{'func': blockDigHook,		'packets': ['blockdig']},
-	'mapchunkhook':		{'func': chunktracker.addChunk,			'packets': ['mapchunk']},
+	'mapchunkhook':		{'func': chunktracker.addPacketChanges,	'packets': ['mapchunk','blockchange','multiblockchange']},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])

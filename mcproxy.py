@@ -55,6 +55,7 @@ def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
 				packet = mcpackets.decode(dir, buff, packetid)
 			else:
 				print("unknown packet 0x%2X from" % packetid, {'c2s':'client', 's2c':'server'}[dir])
+				playerMessage.printToPlayer(serverprops,("unknown packet 0x%2X from" % packetid) + {'c2s':'client', 's2c':'server'}[dir])
 				buff.packet_end()
 				continue
 			packetbytes = buff.packet_end()

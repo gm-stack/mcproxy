@@ -1,35 +1,50 @@
-import numpy, items, zlib
+import numpy, items, zlib, playerMessage
 
 blocktype = {}
 blockmeta = {}
 blocklight = {}
 skylight = {}
 
-def addChunk(packetid, packet, serverprops):
-	size_x = packet['size_x']+1
-	size_y = packet['size_y']+1
-	size_z = packet['size_z']+1
-	#print "(%i,%i,%i) %i x %i x %i" % (packet['x'],packet['y'], packet['z'], packet['size_x'], packet['size_y'], packet['size_z'])
-	
-	chunkdata = zlib.decompress(packet['chunk'])
-	if (len(chunkdata)) != (size_x * size_y * size_z * 2.5):
-		print "ERROR: Chunk data size mismatch"
-	for x in range(size_x):
-		for z in range(size_z):
-			coord = (packet['x'] + x,packet['z'] + z)
-			stack = None
-			if coord in blocktype:
-				stack = blocktype[coord]
-			else:
-				stack = numpy.zeros(128)
-				blocktype[coord] = stack
-			for y in range(size_y):
-				index = y + (z * size_y) + (x * size_y * size_z)
-				btype = ord(chunkdata[index])
-				stack[y + packet['y']] = btype
-				#setBlockType(packet['x'] + x, packet['y'] + y, packet['z'] + z,btype) # FIXME: this seems to work...
+alertblocks = [14, 41, #gold ore, block
+			   15, 42, #iron ore, block
+			   21, 22, #lapiz ore, block
+			   23, #dispenser
+			   54, #chest
+			   56, 57, #diamond ore, block
+]
 
-
+def addPacketChanges(packetid, packet, serverprops):
+	if packetid == 0x33:
+		size_x = packet['size_x']+1
+		size_y = packet['size_y']+1
+		size_z = packet['size_z']+1
+		#print "(%i,%i,%i) %i x %i x %i" % (packet['x'],packet['y'], packet['z'], packet['size_x'], packet['size_y'], packet['size_z'])
+		
+		chunkdata = zlib.decompress(packet['chunk'])
+		if (len(chunkdata)) != (size_x * size_y * size_z * 2.5):
+			print "ERROR: Chunk data size mismatch"
+		for x in range(size_x):
+			for z in range(size_z):
+				coord = (packet['x'] + x,packet['z'] + z)
+				stack = None
+				if coord in blocktype:
+					stack = blocktype[coord]
+				else:
+					stack = numpy.zeros(128)
+					blocktype[coord] = stack
+				for y in range(size_y):
+					index = y + (z * size_y) + (x * size_y * size_z)
+					btype = ord(chunkdata[index])
+					stack[y + packet['y']] = btype
+					#setBlockType(packet['x'] + x, packet['y'] + y, packet['z'] + z,btype) # FIXME: this seems to work...
+	elif packetid == 0x34:
+		pass
+	elif packetid == 0x35:
+		x = packet['x']
+		y = packet['y']
+		z = packet['z']
+		btype = packet['type']
+		setBlockType(x,y,z,btype)
 
 
 def setBlockType(x,y,z,btype):
@@ -42,7 +57,7 @@ def setBlockType(x,y,z,btype):
 		stack[y] = btype
 		blocktype[coord] = stack
 
-def getBlockStack(x,z):
+def getBlockStack(x,z,serverprops):
 	coord = (x,z)
 	if not coord in blocktype:
 		return "no data for %i,%i %i" % (x,z,len(blocktype))
@@ -50,6 +65,8 @@ def getBlockStack(x,z):
 	barray = []
 	bprev = None
 	for i in btype[::-1]:
+		if i in alertblocks:
+			playerMessage.printToPlayer(serverprops,"Found %s at %i,%i" % (items.blockids[i],x,z))
 		if not i == bprev:
 			barray.append([i,1])
 			bprev = i
