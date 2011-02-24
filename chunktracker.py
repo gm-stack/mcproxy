@@ -72,10 +72,13 @@ def getBlockStack(x,z,serverprops):
 			bprev = i
 		else:
 			barray[-1][1] += 1
-	list = ""
+	blist = []
 	for item in barray:
-		list += "%s x %i\n" % (printitem(item[0]), item[1])
-	return list
+		blist.append"%s x %i\n" % (printitem(item[0]), item[1])
+	if len(blist) > 20:
+		return "\n".join((["Warning: too complex"] + blist))
+	else:
+		return "\n".join(blist)
 
 def printitem(itemid):
 	name = items.blockids[itemid]
