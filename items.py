@@ -26,6 +26,7 @@ blockids = {
 	23	:"dispenser",
 	24	:"sandstone",
 	25	:"note Block",
+	26	:"bed",
 	35	:"wool",
 	37	:"yellow flower",
 	38	:"red rose",
@@ -83,6 +84,8 @@ blockids = {
 	90	:"portal",
 	91	:"jack-o-lantern",
 	92	:"cake block",
+	93	:"redstone repeater off",
+	94	:"redstone repeater on",
 }
 
 blockcolours = {
