@@ -106,6 +106,20 @@ def blockDigHook(packetid, packet, serverprops):
 	packet['status'] = 3
 	return packet
 
+from playerMessage import printToPlayer
+am_sneaking = False
+def sneakHook(packetid, packet, serverprops):
+	if packet['dir'] == 'c2s':
+		if packet['action'] == 2:
+			if getattr(serverprops, 'sneak_mode', False):
+				printToPlayer(serverprops, "# sneak mode deactivated")
+				serverprops.sneak_mode = False
+			else:
+				packet['action'] = 1
+				printToPlayer(serverprops, "# sneak mode activated")
+				serverprops.sneak_mode = True
+			return packet
+	
 namedhooks = {
 	'timeHook': 			{'func': timeHook, 			'packets': ['time']},
 	'playerPosAngleHook': 	{'func': playerPosAngleHook,		'packets': ['playerposition','playerlook','playermovelook']},
@@ -119,6 +133,7 @@ namedhooks = {
 	'slothook':			{'func': slotHook,			'packets': ['setslot']},
 	'blockdighook':		{'func': blockDigHook,		'packets': ['blockdig']},
 	'mapchunkhook':		{'func': chunktracker.addPacketChanges,	'packets': ['mapchunk','blockchange','multiblockchange']},
+	'sneakhook':		{'func': sneakHook,			'packets': ['entaction']},
 }
 
 hook_to_name = dict([(namedhooks[id]['func'], id) for id in namedhooks])
@@ -152,3 +167,4 @@ def setupInitialHooks(serverprops):
 	addHook(serverprops,'chatcommands')
 	addHook(serverprops, 'playertracking')
 	addHook(serverprops, 'mapchunkhook')
+	addHook(serverprops, 'sneakhook')
