@@ -356,7 +356,7 @@ def find (serverprops, command):
 
 def detect(serverprops, command):
 	serverprops.detect = not serverprops.detect
-	print "Item detection %s" % ("enabled" if serverprops.detect else "disabled")
+	playerMessage.printToPlayer(serverprops,"Item detection %s" % ("enabled" if serverprops.detect else "disabled"))
 
 commandlist = {
 	'dumpPackets':dumpPackets,
