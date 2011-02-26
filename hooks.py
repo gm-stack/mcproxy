@@ -90,6 +90,20 @@ def chatCommand(packetid, packet, serverprops):
 					print "Unknown item: " + item
 					return {}
 			msg[2] = str(itemnum)
+			if len(msg) == 4:
+				num = msg[3]
+				try:
+					num = int(num)
+				except:
+					print "invalid number"
+					return {}
+				if num > 64:
+					msg[3] = "64"
+					packets = int((num - 64)/64)
+					packet2 = {'message':"/give %s %s 64" % (msg[1],msg[2])}
+					encpacket = mcpackets.encode("c2s",mcpackets.name_to_id['chat'],packet2)
+					for i in range(packets):
+						serverprops.comms.serverqueue.put(encpacket)
 			packet['message'] = " ".join(msg)
 			return packet
 

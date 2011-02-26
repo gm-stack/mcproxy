@@ -1,5 +1,5 @@
 import hooks, mcpackets, items, math
-import mcpackets, chunktracker
+import mcpackets, chunktracker, playerMessage
 
 def dumpPackets(serverprops,command):
 	serverprops.dump_packets = not serverprops.dump_packets
