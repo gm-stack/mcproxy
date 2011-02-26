@@ -354,6 +354,9 @@ def find (serverprops, command):
 	btype = int(command[1])
 	chunktracker.findNearby(x,z,dist,btype,serverprops)
 
+def detect(serverprops, command):
+	serverprops.detect = not serverprops.detect
+	print "Item detection %s" % ("enabled" if serverprops.detect else "disabled")
 
 commandlist = {
 	'dumpPackets':dumpPackets,
@@ -373,6 +376,7 @@ commandlist = {
 	'setslot':setslot,
 	'stack':stack,
 	'find':find,
+	'detect':detect,
 }
 
 def runCommand(serverprops,command):

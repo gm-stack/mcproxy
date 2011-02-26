@@ -75,8 +75,7 @@ def chatCommand(packetid, packet, serverprops):
 		if packet['message'].startswith('#'):
 			command = packet['message'][1:].split(" ")
 			commands.runCommand(serverprops,command)
-			packet['dir'] = None
-			return packet
+			return {}
 		elif packet['message'].startswith('/give '):
 			msg = packet['message'].split(" ")
 			item = msg[2]

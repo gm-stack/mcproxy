@@ -66,7 +66,7 @@ def getBlockStack(x,z,serverprops):
 	barray = []
 	bprev = None
 	for i in btype[::-1]:
-		if i in alertblocks:
+		if i in alertblocks and (serverprops.detect == True):
 			playerMessage.printToPlayer(serverprops,"Found %s at %i,%i" % (items.blockids[i],x,z))
 		if not i == bprev:
 			barray.append([i,1])

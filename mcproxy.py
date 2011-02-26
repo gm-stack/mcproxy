@@ -126,6 +126,7 @@ class serverprops():
 	filterlist = [0x01, 0x02, 0xFF]
 	hexdump = False
 	screen = None
+	detect = False
 	playerdata = {}
 	playerdata_lock = RLock()
 	players = {}

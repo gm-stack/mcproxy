@@ -295,6 +295,14 @@ decoders = {
 			'hooks':[],
 			'format': [od([ ('item', nbt.TAG_Short), ])],},
 
+	0x11: { 'name':'unknown 0x11',
+			'hooks':[],
+			'format': [od([ ('unknown1', nbt.TAG_Int),
+							('unknown2', nbt.TAG_Byte),
+							('unknown3', nbt.TAG_Int),
+							('unknown4', nbt.TAG_Byte),
+							('unknown5', nbt.TAG_Int), ])],},
+
 	
 	0x12: {	'name':'armanim',
 			'hooks': [],
@@ -357,6 +365,15 @@ decoders = {
 							('Y',			nbt.TAG_Int),
 							('Z',			nbt.TAG_Int),
 							('Type',		nbt.TAG_Int), ])] },
+	
+	0x1B: {	'name':'unknown 0x1B',
+			'hooks': [],
+			'format': [od([	('unknown1',	nbt.TAG_Float),
+							('unknown2',	nbt.TAG_Float),
+							('unknown3',	nbt.TAG_Float),
+							('unknown4',	nbt.TAG_Float),
+							('unknown5',	nbt.TAG_Bool),
+							('unknown6',	nbt.TAG_Bool), ])] },
 	
 	0x1C: { 'name':'entvelocity',
 			'hooks': [],
