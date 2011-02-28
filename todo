@@ -2,16 +2,10 @@ Stuff to implement
 
 -- Intercept map chunks, draw a map for the client
 
--- Intercept / send "set inventory / get inventory" packets
-	-- we can fake "add to inventory" packets
-
 -- Intercept time packets, modify to client (always daytime)
 	-- done
 
 -- Find other clients
-
--- display your position, support "GPS" waypoints
-	-- for spawn only, for now
 
 -- teleport to areas / other clients regardless of server support
 
@@ -24,3 +18,18 @@ Stuff to implement
 -- insert fences around other players
 
 THIS IS A TEST
+
+
+Archived:
+
+Done:
+
+-- display your position, support "GPS" waypoints
+	-- for spawn only, for now
+		-- done
+
+Can't do:
+
+-- Intercept / send "set inventory / get inventory" packets
+	-- we can fake "add to inventory" packets
+	-- can't do this any more
