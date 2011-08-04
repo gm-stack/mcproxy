@@ -14,6 +14,7 @@ TAG_STRING = 8
 TAG_LIST = 9
 TAG_COMPOUND = 10
 TAG_BYTEU = 11
+TAG_UCS2_STRING = 12
 
 class TAG(object):
 	"""Each Tag needs to take a file-like object for reading and writing.
@@ -152,7 +153,72 @@ class TAG_String(TAG):
 			return self.value
 		else:
 			return ""
-		
+
+class TAG_String(TAG):
+	id = TAG_STRING
+	def __init__(self, value=None, name=None, buffer=None):
+		super(TAG_String, self).__init__(value, name)
+		if buffer:
+			self._parse_buffer(buffer)
+	
+	#Parsers and Generators	
+	def _parse_buffer(self, buffer, offset=None):
+		self.length = TAG_Short(buffer=buffer)
+		if self.length.value > 0:
+			self.value = unicode(buffer.read(self.length.value), "utf-8")
+		else: self.value = None
+	
+	def _render_buffer(self, buffer, offset=None):
+		if self.value:
+			save_val = self.value.encode("utf-8")
+			self.length = TAG_Short(len(save_val))
+			self.length._render_buffer(buffer, offset)
+			if self.length > 0:
+				buffer.write(save_val)
+		else:
+			self.length.value = 0
+			self.length._render_buffer(buffer, offset)
+    
+	#Printing and Formatting of tree
+	def __repr__(self):
+		if self.value:
+			return self.value
+		else:
+			return ""
+
+class TAG_UCS2_String(TAG):
+	id = TAG_UCS2_STRING
+	def __init__(self, value=None, name=None, buffer=None):
+		super(TAG_UCS2_String, self).__init__(value, name)
+		if buffer:
+			self._parse_buffer(buffer)
+	
+	#Parsers and Generators	
+	def _parse_buffer(self, buffer, offset=None):
+		self.length = TAG_Short(buffer=buffer)
+		if self.length.value > 0:
+			self.value = unicode(buffer.read(self.length.value), "utf-16-be")
+		else: self.value = None
+	
+	def _render_buffer(self, buffer, offset=None):
+		if self.value:
+			save_val = self.value.encode("utf-16-be")
+			self.length = TAG_Short(len(save_val)/2) # UTF-16 = 2 bytes
+			self.length._render_buffer(buffer, offset)
+			if self.length > 0:
+				buffer.write(save_val)
+		else:
+			self.length.value = 0
+			self.length._render_buffer(buffer, offset)
+    
+	#Printing and Formatting of tree
+	def __repr__(self):
+		if self.value:
+			return self.value
+		else:
+			return ""
+
+
 class TAG_List(TAG):
 	id = TAG_LIST
 	def __init__(self, name=None, type=None, buffer=None):

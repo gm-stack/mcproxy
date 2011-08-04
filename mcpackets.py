@@ -190,8 +190,7 @@ decoders = {
 	
 	0x02: { 'name':'handshake',
 			'hooks': [],
-			'format': [od([ ('serverID',	nbt.TAG_String),]),
-					   od([ ('username',	nbt.TAG_String),])] },
+			'format': [od([ ('username',	nbt.TAG_UCS2_String),])] },
 	
 	0x03: {	'name':'chat',
 			'hooks': [],
