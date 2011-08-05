@@ -4,7 +4,7 @@
 # serverprops	class				see mcproxy.py for details
 # serverqueue	queue				use these to insert new packets
 # clientqueue	queue
-import positioning, gui, mcpackets, commands, items, chunktracker
+import positioning, mcpackets, commands, items, chunktracker
 
 def timeHook(packetid, packet, serverprops):
 	time = packet['time']

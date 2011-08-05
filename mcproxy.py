@@ -165,7 +165,7 @@ def startNetworkSockets(serverprops):
 			#host = (preserv if len(sys.argv) < 2 else sys.argv[1])
 			# make it pick one from: http://servers.minecraftforum.net/
 			
-			host = str(serverprops.gui['server'].text())
+			host = "stackunderflow.com:25555" #str(serverprops.gui['server'].text())
 			
 			if ":" in host: 
 				host, port = host.split(":")
@@ -201,14 +201,16 @@ if __name__ == "__main__":
 	
 	#modules.load_modules()
 	
-	sd = Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,))
-	sd.setDaemon(True)
-	sd.start()
-	
-	shell = Thread(name="InteractiveShell", target=ishell, args=(serverprops,))
-	shell.setDaemon(True)
-	shell.start()
-	
-	import gui
-	gui.start_gui(serverprops)
+    sd = Thread(name="ServerDispatch", target=startNetworkSockets, args=(serverprops,))
+    sd.setDaemon(True)
+    sd.start()
+
+    shell = Thread(name="InteractiveShell", target=ishell, args=(serverprops,))
+    shell.setDaemon(True)
+    shell.start()
+
+    while 1:
+        time.sleep(1)
+	#import gui
+    #gui.start_gui(serverprops)
 	#app should exit here, and threads should terminate

@@ -1,4 +1,4 @@
-import numpy, items, zlib, playerMessage, positioning, gui
+import numpy, items, zlib, playerMessage, positioning
 
 blocktype = {}
 blockmeta = {}
