@@ -35,9 +35,69 @@ if __name__== '__main__':
 						help="Enables advanced debugging.")
 	settings = parser.parse_args(namespace=settings)
 
-#--------- init systems ---------
+#--------- Init Systems ---------
 import mcpackets, nbt, hooks, items, modules
+log = logging.getLogger("SERVER")
 
+#--------- Threads ----------
+def sock_foward(dir, insocket, outsocket, outqueue, settings):
+	buff = FowardingBuffer(insocket, outsocket)
+	session = settings.session
+	try:
+		while True:
+			#decode packet
+			buff.packet_start()
+			packetid = struct.unpack("!B", buff.read(1))[0]
+			if packetid in session.protocol.packets.keys():
+				packet = session.protocol.decode(dir, buff, packetid)
+				if packetid==0x01 and dir=='c2s':
+					if packet['protoversion'] in mcpackets.supported_protocols.keys():
+						session.comms.protocol = mcpackets.supported_protocols[packet['protoversion']]()
+			else:
+				logging.critical("unknown packet 0x%2X from %s", packetid, {'c2s':'client', 's2c':'server'}[dir])
+				buff.packet_end()
+				raise Exception("Unknown Packet 0x%2X"%packetid)
+				#playerMessage.printToPlayer(session,("unknown packet 0x%2X from" % packetid) + {'c2s':'client', 's2c':'server'}[dir])
+			packetbytes = buff.packet_end()
+			
+			modpacket = run_hooks(packetid, packet, session)
+			if modpacket == None: # if run_hooks returns none, the packet was not modified
+				packet_info(packetid, packet, buff, session)
+				buff.write(packetbytes)
+			elif modpacket == {}: # if an empty dict, drop the packet
+				pass
+			else:
+				packet_info(packetid, modpacket, buff, session)
+				buff.write(session.comms.protocol.encode(dir,packetid,modpacket))
+			
+			#send all items in the outgoing queue
+			while not outqueue.empty():
+				task = outqueue.get()
+				buff.write(task)
+				outqueue.task_done()
+				
+	except socket.error, e:
+		print( dir, "connection quit unexpectedly:")
+		print e
+		outsocket.close()
+		return
+	
+	#close the other socket
+	outsocket.close()
+	insocket.close()
+
+#does not currently run
+def ishell(settings):
+	while True:
+		command = raw_input(">")
+		command = command.split(" ")
+		try:
+			modules.commands.runCommand(settings.session, command)
+		except Exception as e:
+			traceback.print_exc()
+			print "error in command", command[0] 
+
+#--------- utility ---------------
 class FowardingBuffer():
 	def __init__(self, insocket, outsocket, *args, **kwargs):
 		self.inbuff = insocket.makefile('rb', 4096)
@@ -72,80 +132,30 @@ class FowardingBuffer():
 		if truncate: rpack += " ..."
 		return rpack
 
-def sock_foward(dir, insocket, outsocket, outqueue, serverprops):
-	buff = FowardingBuffer(insocket, outsocket)
-	try:
-		while True:
-			#decode packet
-			buff.packet_start()
-			packetid = struct.unpack("!B", buff.read(1))[0]
-			if packetid in mcpackets.decoders.keys():
-				packet = mcpackets.decode(dir, buff, packetid)
-			else:
-				print("unknown packet 0x%2X from" % packetid, {'c2s':'client', 's2c':'server'}[dir])
-				playerMessage.printToPlayer(serverprops,("unknown packet 0x%2X from" % packetid) + {'c2s':'client', 's2c':'server'}[dir])
-				buff.packet_end()
-				continue
-			packetbytes = buff.packet_end()
-			
-			modpacket = run_hooks(packetid, packet, serverprops)
-			if modpacket == None: # if run_hooks returns none, the packet was not modified
-				packet_info(packetid, packet, buff, serverprops)
-				buff.write(packetbytes)
-			elif modpacket == {}: # if an empty dict, drop the packet
-				pass
-			else:
-				packet_info(packetid, modpacket, buff, serverprops)
-				buff.write(mcpackets.encode(dir,packetid,modpacket))
-			
-			#send all items in the outgoing queue
-			while not outqueue.empty():
-				task = outqueue.get()
-				buff.write(task)
-				outqueue.task_done()
-				
-	except socket.error, e:
-		print( dir, "connection quit unexpectedly:")
-		print e
-		outsocket.close()
-		return
-	
-	#close the other socket
-	outsocket.close()
-	insocket.close()
-
-def run_hooks(packetid, packet, serverprops):
+#will not run yet
+def run_hooks(packetid, packet, session):
 	ret = None
-	if mcpackets.decoders[packetid]['hooks']:
-		for hook in mcpackets.decoders[packetid]['hooks']:
+	hooks = session.protocol.packets[packetid]['hooks']
+	if hooks:
+		for hook in hooks:
 			try:
-				retpacket = hook(packetid,packet,serverprops)
+				retpacket = hook(packetid,packet,session)
 				if retpacket != None:
 					packet = retpacket
 					ret = packet
 			except Exception as e:
 				traceback.print_exc()
-				print('Hook "%s" crashed!' % hooks.hook_to_name[hook]) #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
-				mcpackets.decoders[packetid]['hooks'].remove(hook)
+				print('Hook "%s" crashed!' % modules.hook_to_name[hook]) #: File:%s, line %i in %s (%s)" % (execption[0], execption[1], execption[2], execption[3]))
+				session.protocol.packets[packetid]['hooks'].remove(hook)
 			#	#FIXME: make this report what happened
 	return ret
 
-def packet_info(packetid, packet, buff, serverprops):
-	if serverprops.dump_packets:
-		if not serverprops.dumpfilter or (packetid in serverprops.filterlist):
-			print packet['dir'], "->", mcpackets.decoders[packetid]['name'], ":", packet
-		if serverprops.hexdump:
+def packet_info(packetid, packet, buff, session):
+	if settings.dump_packets:
+		if not settings.dumpfilter or (packetid in settings.filterlist):
+			print packet['dir'], "->", session.protocol.packets[packetid]['name'], ":", packet
+		if settings.hexdump:
 			print buff.render_last_packet()
-
-def ishell(settings):
-	while True:
-		command = raw_input(">")
-		command = command.split(" ")
-		try:
-			commands.runCommand(settings.session,command)
-		except Exception as e:
-			traceback.print_exc()
-			print "error in command", command[0] 
 
 #storage class for a session with the server
 class Session():
@@ -165,8 +175,9 @@ class Session():
 		class comms:
 			clientqueue = None
 			serverqueue = None
-	__call__ = __init__
-		
+			protocol = mcpackets.BaseProtocol()
+
+
 def startNetworkSockets(settings):
 	#====================================================================================#
 	# server <---------- serversocket | mcproxy | clientsocket ----------> minecraft.jar #
@@ -210,12 +221,12 @@ def startNetworkSockets(settings):
 			
 			#start processing threads
 			serverthread = Thread(target=sock_foward, name=str(id(session))+"-ClientToServer", 
-								args=("c2s", clientsocket, serversocket, session.comms.serverqueue, session))
+								args=("c2s", clientsocket, serversocket, session.comms.serverqueue, settings))
 			serverthread.setDaemon(True)
 			serverthread.start()
 
 			clientthread = Thread(target=sock_foward, name=str(id(session))+"-ServerToClient", 
-								args=("s2c", serversocket, clientsocket, session.comms.clientqueue, session))
+								args=("s2c", serversocket, clientsocket, session.comms.clientqueue, settings))
 			clientthread.setDaemon(True)
 			clientthread.start()
 			
