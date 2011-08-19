@@ -1,0 +1,9 @@
+syntax: regex
+^Lib/
+^lib/
+^Scripts/
+^bin/
+^local/
+^Include/
+^include/
+^build/
